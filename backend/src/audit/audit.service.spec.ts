@@ -1,16 +1,35 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from './audit.service';
 import { AuditInputDto } from './dto/audit.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+const mockPrismaService = {
+  auditReport: {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+  lead: {
+    upsert: jest.fn(),
+  },
+};
 
 describe('AuditService - Defensible AI Spend Audit Engine', () => {
   let service: AuditService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuditService],
+      providers: [
+        AuditService,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
     }).compile();
 
     service = module.get<AuditService>(AuditService);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -168,9 +187,6 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
     const result = service.performAudit(input);
 
     expect(result.toolBreakdowns).toHaveLength(2);
-    // Cursor Business 15 seats -> Annual Billing ($32 * 15 = 480, savings = 120)
-    // Claude Max 20x 2 seats -> Claude Pro ($20 * 2 = 40, savings = 360)
-    // Total savings = 120 + 360 = 480 (or if higher overage, let's check total savings)
     expect(result.totalMonthlySavings).toBeGreaterThanOrEqual(480);
     expect(result.totalAnnualSavings).toBe(result.totalMonthlySavings * 12);
   });
@@ -198,5 +214,55 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
     expect(breakdown.estimatedMonthlyCost).toBe(380); // $19 * 20
     expect(breakdown.monthlySavings).toBe(400); // (39 - 19) * 20
     expect(breakdown.reason).toContain('primarily for custom knowledge bases');
+  });
+
+  it('Test 8: should save audit report and items to DB on analyzeAndSaveAudit and return shareSlug', async () => {
+    mockPrismaService.auditReport.create.mockResolvedValue({
+      id: 'mock-report-id',
+      shareSlug: 'mock-slug-123',
+      teamSize: 2,
+      primaryUseCase: 'coding',
+      totalMonthlySavings: 10,
+      totalAnnualSavings: 120,
+      overallStatus: 'optimal',
+      items: [],
+    });
+
+    const input: AuditInputDto = {
+      teamSize: 2,
+      primaryUseCase: 'coding',
+      tools: [
+        {
+          toolName: 'Claude',
+          plan: 'Team',
+          seats: 2,
+          currentMonthlySpend: 50,
+        },
+      ],
+    };
+
+    const result = await service.analyzeAndSaveAudit(input);
+    expect(result.id).toBe('mock-report-id');
+    expect(result.shareSlug).toBe('mock-slug-123');
+    expect(mockPrismaService.auditReport.create).toHaveBeenCalled();
+  });
+
+  it('Test 9: should get public report by shareSlug and strip private leadId', async () => {
+    mockPrismaService.auditReport.findUnique.mockResolvedValue({
+      id: 'mock-report-id',
+      shareSlug: 'mock-slug-123',
+      leadId: 'private-lead-id',
+      teamSize: 2,
+      primaryUseCase: 'coding',
+      totalMonthlySavings: 10,
+      totalAnnualSavings: 120,
+      overallStatus: 'optimal',
+      items: [],
+    });
+
+    const publicReport = await service.getAuditBySlug('mock-slug-123');
+    expect(publicReport).toBeDefined();
+    expect(publicReport).not.toHaveProperty('leadId');
+    expect(publicReport.shareSlug).toBe('mock-slug-123');
   });
 });

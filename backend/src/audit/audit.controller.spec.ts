@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
 import { AuditInputDto } from './dto/audit.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 describe('AuditController', () => {
   let controller: AuditController;
@@ -10,7 +11,22 @@ describe('AuditController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuditController],
-      providers: [AuditService],
+      providers: [
+        AuditService,
+        {
+          provide: PrismaService,
+          useValue: {
+            auditReport: {
+              create: jest.fn(),
+              findUnique: jest.fn(),
+              update: jest.fn(),
+            },
+            lead: {
+              upsert: jest.fn(),
+            },
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<AuditController>(AuditController);
@@ -21,7 +37,7 @@ describe('AuditController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should delegate audit analysis to AuditService and return results', () => {
+  it('should delegate audit analysis to AuditService.analyzeAndSaveAudit and return results with shareSlug', async () => {
     const sampleInput: AuditInputDto = {
       teamSize: 2,
       primaryUseCase: 'coding',
@@ -35,11 +51,22 @@ describe('AuditController', () => {
       ],
     };
 
-    const spy = jest.spyOn(service, 'performAudit');
-    const result = controller.analyze(sampleInput);
+    const expectedResult = {
+      id: 'report-id',
+      shareSlug: 'slug-abc',
+      toolBreakdowns: [],
+      totalMonthlySavings: 40,
+      totalAnnualSavings: 480,
+      overallStatus: 'optimal' as const,
+    };
+
+    const spy = jest
+      .spyOn(service, 'analyzeAndSaveAudit')
+      .mockResolvedValue(expectedResult);
+    const result = await controller.analyze(sampleInput);
 
     expect(spy).toHaveBeenCalledWith(sampleInput);
-    expect(result.toolBreakdowns).toHaveLength(1);
-    expect(result.totalMonthlySavings).toBeGreaterThan(0);
+    expect(result.shareSlug).toBe('slug-abc');
+    expect(result.totalMonthlySavings).toBe(40);
   });
 });

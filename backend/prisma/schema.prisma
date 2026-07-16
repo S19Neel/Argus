@@ -11,3 +11,55 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Lead {
+  id          String        @id @default(uuid())
+  email       String        @unique
+  companyName String?       @map("company_name")
+  role        String?
+  teamSize    Int?          @map("team_size")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  audits      AuditReport[]
+
+  @@map("lead")
+}
+
+model AuditReport {
+  id                  String      @id @default(uuid())
+  shareSlug           String      @unique @default(uuid()) @map("share_slug")
+  teamSize            Int         @map("team_size")
+  primaryUseCase      String      @map("primary_use_case")
+  totalMonthlySavings Float       @map("total_monthly_savings")
+  totalAnnualSavings  Float       @map("total_annual_savings")
+  overallStatus       String      @map("overall_status")
+  summaryParagraph    String?     @map("summary_paragraph")
+  leadId              String?     @map("lead_id")
+  lead                Lead?       @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  items               AuditItem[]
+
+  @@index([shareSlug])
+  @@index([leadId])
+  @@map("audit_report")
+}
+
+model AuditItem {
+  id                    String      @id @default(uuid())
+  auditReportId         String      @map("audit_report_id")
+  auditReport           AuditReport @relation(fields: [auditReportId], references: [id], onDelete: Cascade)
+  toolName              String      @map("tool_name")
+  currentPlan           String      @map("current_plan")
+  seats                 Int
+  currentSpend          Float       @map("current_spend")
+  recommendedAction     String      @map("recommended_action")
+  recommendedPlanOrTool String      @map("recommended_plan_or_tool")
+  estimatedMonthlyCost  Float       @map("estimated_monthly_cost")
+  monthlySavings        Float       @map("monthly_savings")
+  annualSavings         Float       @map("annual_savings")
+  reason                String
+
+  @@index([auditReportId])
+  @@map("audit_item")
+}

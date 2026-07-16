@@ -1,9 +1,11 @@
 import {
   IsArray,
+  IsEmail,
   IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   ValidateNested,
@@ -24,23 +26,13 @@ export type ToolName =
   | 'v0';
 
 export type PrimaryUseCase =
-  | 'coding'
-  | 'writing'
-  | 'data'
-  | 'research'
-  | 'mixed';
+  'coding' | 'writing' | 'data' | 'research' | 'mixed';
 
 export type RecommendedAction =
-  | 'keep'
-  | 'switch_plan'
-  | 'switch_tool'
-  | 'switch_to_credits'
-  | 'downgrade';
+  'keep' | 'switch_plan' | 'switch_tool' | 'switch_to_credits' | 'downgrade';
 
 export type OverallAuditStatus =
-  | 'optimal'
-  | 'moderate_savings'
-  | 'high_savings';
+  'optimal' | 'moderate_savings' | 'high_savings';
 
 export class ToolItemInputDto {
   @IsString()
@@ -93,4 +85,32 @@ export class AuditResultDto {
   totalMonthlySavings: number;
   totalAnnualSavings: number;
   overallStatus: OverallAuditStatus;
+}
+
+export class PersistedAuditResultDto extends AuditResultDto {
+  id: string;
+  shareSlug: string;
+}
+
+export class CaptureLeadDto {
+  @IsString()
+  @IsNotEmpty()
+  shareSlug: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsOptional()
+  companyName?: string;
+
+  @IsString()
+  @IsOptional()
+  role?: string;
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  teamSize?: number;
 }

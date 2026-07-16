@@ -101,7 +101,7 @@ export function evaluateToolAuditBreakdown(
       estimatedMonthlyCost: estimatedCost,
       monthlySavings,
       annualSavings: monthlySavings * 12,
-      reason: `Centralized dashboard and SOC-2 enforcement on Cursor Business ($40/seat/mo) are typically redundant for teams under 4 seats; downgrading ${seats} seat(s) to Cursor Pro ($${proRate}/seat/mo) halves per-developer spend with zero coding capability loss.`,
+      reason: `Centralized dashboard and SOC-2 enforcement on Cursor Business ($${Math.round(currentSpend / seats)}/seat/mo) are typically redundant for teams under 4 seats; downgrading ${seats} seat(s) to Cursor Pro ($${proRate}/seat/mo) reduces per-developer spend by $${monthlySavings}/mo with zero coding capability loss.`,
     };
   }
 
@@ -149,7 +149,7 @@ export function evaluateToolAuditBreakdown(
       estimatedMonthlyCost: estimatedCost,
       monthlySavings,
       annualSavings: monthlySavings * 12,
-      reason: `At ${seats} seats for code generation, Copilot Enterprise ($39/seat/mo) carries a 105% premium primarily for custom knowledge bases; shifting to Copilot Business ($${businessRate}/seat/mo) delivers core IDE auto-completion and chat while cutting monthly spend by $${monthlySavings}.`,
+      reason: `At ${seats} seats for code generation, Copilot Enterprise ($${Math.round(currentSpend / seats)}/seat/mo) carries a massive premium primarily for custom knowledge bases; shifting to Copilot Business ($${businessRate}/seat/mo) delivers core IDE auto-completion and chat while cutting monthly spend by $${monthlySavings}.`,
     };
   }
 
@@ -203,12 +203,16 @@ export function evaluateToolAuditBreakdown(
     (plan === 'Pro' || plan === 'Teams Standard' || plan === 'Business') &&
     seats >= 3
   ) {
+    const monthlyRate =
+      TOOL_PRICING_REGISTRY.Cursor[plan]?.monthlyRatePerSeat ??
+      (plan === 'Pro' ? 20 : 40);
     const annualRate =
       TOOL_PRICING_REGISTRY.Cursor[plan]?.annualRatePerSeat ??
       (plan === 'Pro' ? 16 : 32);
     const estimatedCost = seats * annualRate;
     const monthlySavings = Math.max(0, currentSpend - estimatedCost);
     if (monthlySavings > 0) {
+      const discountPct = Math.round((1 - annualRate / monthlyRate) * 100);
       return {
         toolName,
         currentPlan: plan,
@@ -218,7 +222,7 @@ export function evaluateToolAuditBreakdown(
         estimatedMonthlyCost: estimatedCost,
         monthlySavings,
         annualSavings: monthlySavings * 12,
-        reason: `Converting your ${seats} Cursor ${plan} seat(s) from monthly to annual billing ($${annualRate}/mo) unlocks an immediate 20% cost reduction ($${monthlySavings * 12}/yr) with zero workflow changes.`,
+        reason: `Converting your ${seats} Cursor ${plan} seat(s) from monthly ($${monthlyRate}/mo) to annual billing ($${annualRate}/mo) unlocks an immediate ${discountPct}% cost reduction ($${monthlySavings * 12}/yr) with zero workflow changes.`,
       };
     }
   }
@@ -228,7 +232,10 @@ export function evaluateToolAuditBreakdown(
     (plan === 'Pro' || plan === 'Individual') &&
     seats >= 3
   ) {
-    const annualRate = 8.33;
+    const monthlyRate =
+      TOOL_PRICING_REGISTRY['GitHub Copilot'][plan]?.monthlyRatePerSeat ?? 10;
+    const annualRate =
+      TOOL_PRICING_REGISTRY['GitHub Copilot'][plan]?.annualRatePerSeat ?? 8.33;
     const estimatedCost = Math.round(seats * annualRate * 100) / 100;
     const monthlySavings =
       Math.round((currentSpend - estimatedCost) * 100) / 100;
@@ -242,7 +249,7 @@ export function evaluateToolAuditBreakdown(
         estimatedMonthlyCost: estimatedCost,
         monthlySavings,
         annualSavings: Math.round(monthlySavings * 12),
-        reason: `Locking in annual billing for ${seats} GitHub Copilot ${plan} seat(s) drops effective seat cost from $10/mo to $8.33/mo ($100/yr), yielding guaranteed $${Math.round(monthlySavings * 12)} annual efficiency gains.`,
+        reason: `Locking in annual billing for ${seats} GitHub Copilot ${plan} seat(s) drops effective seat cost from $${monthlyRate}/mo to $${annualRate}/mo ($${Math.round(annualRate * 12)}/yr), yielding guaranteed $${Math.round(monthlySavings * 12)} annual efficiency gains.`,
       };
     }
   }

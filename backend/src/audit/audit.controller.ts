@@ -1,18 +1,36 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AuditService } from './audit.service';
-import { AuditInputDto, AuditResultDto } from './dto/audit.dto';
+import {
+  AuditInputDto,
+  CaptureLeadDto,
+  PersistedAuditResultDto,
+} from './dto/audit.dto';
 
 @Controller('audit')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Post()
-  analyze(@Body() input: AuditInputDto): AuditResultDto {
-    return this.auditService.performAudit(input);
+  async analyze(
+    @Body() input: AuditInputDto,
+  ): Promise<PersistedAuditResultDto> {
+    return this.auditService.analyzeAndSaveAudit(input);
   }
 
   @Post('analyze')
-  analyzeEndpoint(@Body() input: AuditInputDto): AuditResultDto {
-    return this.auditService.performAudit(input);
+  async analyzeEndpoint(
+    @Body() input: AuditInputDto,
+  ): Promise<PersistedAuditResultDto> {
+    return this.auditService.analyzeAndSaveAudit(input);
+  }
+
+  @Get('share/:slug')
+  async getShareableReport(@Param('slug') slug: string) {
+    return this.auditService.getAuditBySlug(slug);
+  }
+
+  @Post('lead')
+  async captureLead(@Body() dto: CaptureLeadDto) {
+    return this.auditService.captureLeadForAudit(dto);
   }
 }
