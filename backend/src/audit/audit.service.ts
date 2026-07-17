@@ -9,10 +9,14 @@ import {
 } from './dto/audit.dto';
 import { evaluateToolAuditBreakdown } from './rules/audit-rules';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AiService } from 'src/ai/ai.service';
 
 @Injectable()
 export class AuditService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+  ) {}
 
   performAudit(input: AuditInputDto): AuditResultDto {
     const toolBreakdowns: ToolAuditBreakdownDto[] = input.tools.map((tool) =>
@@ -49,6 +53,10 @@ export class AuditService {
     input: AuditInputDto,
   ): Promise<PersistedAuditResultDto> {
     const result = this.performAudit(input);
+    const summaryParagraph = await this.aiService.generateSummary(
+      result,
+      input,
+    );
 
     const report = await this.prisma.auditReport.create({
       data: {
@@ -57,6 +65,7 @@ export class AuditService {
         totalMonthlySavings: result.totalMonthlySavings,
         totalAnnualSavings: result.totalAnnualSavings,
         overallStatus: result.overallStatus,
+        summaryParagraph,
         items: {
           create: result.toolBreakdowns.map((item) => {
             const inputTool =
@@ -86,6 +95,7 @@ export class AuditService {
       ...result,
       id: report.id,
       shareSlug: report.shareSlug,
+      summaryParagraph: report.summaryParagraph,
     };
   }
 

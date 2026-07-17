@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from './audit.service';
 import { AuditInputDto } from './dto/audit.dto';
+import { AiService } from 'src/ai/ai.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 const mockPrismaService = {
@@ -14,6 +15,12 @@ const mockPrismaService = {
   },
 };
 
+const mockAiService = {
+  generateSummary: jest
+    .fn()
+    .mockResolvedValue('Mock AI Executive Summary for testing'),
+};
+
 describe('AuditService - Defensible AI Spend Audit Engine', () => {
   let service: AuditService;
 
@@ -24,6 +31,10 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: AiService,
+          useValue: mockAiService,
         },
       ],
     }).compile();
@@ -220,6 +231,7 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
     mockPrismaService.auditReport.create.mockResolvedValue({
       id: 'mock-report-id',
       shareSlug: 'mock-slug-123',
+      summaryParagraph: 'Mock AI Executive Summary for testing',
       teamSize: 2,
       primaryUseCase: 'coding',
       totalMonthlySavings: 10,
@@ -244,6 +256,10 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
     const result = await service.analyzeAndSaveAudit(input);
     expect(result.id).toBe('mock-report-id');
     expect(result.shareSlug).toBe('mock-slug-123');
+    expect(result.summaryParagraph).toBe(
+      'Mock AI Executive Summary for testing',
+    );
+    expect(mockAiService.generateSummary).toHaveBeenCalled();
     expect(mockPrismaService.auditReport.create).toHaveBeenCalled();
   });
 

@@ -90,6 +90,7 @@ export class AuditResultDto {
 export class PersistedAuditResultDto extends AuditResultDto {
   id: string;
   shareSlug: string;
+  summaryParagraph?: string | null;
 }
 
 export class CaptureLeadDto {

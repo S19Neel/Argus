@@ -3,6 +3,7 @@ import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
 import { AuditInputDto } from './dto/audit.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AiService } from 'src/ai/ai.service';
 
 describe('AuditController', () => {
   let controller: AuditController;
@@ -24,6 +25,12 @@ describe('AuditController', () => {
             lead: {
               upsert: jest.fn(),
             },
+          },
+        },
+        {
+          provide: AiService,
+          useValue: {
+            generateSummary: jest.fn().mockResolvedValue('Mock AI Summary'),
           },
         },
       ],
