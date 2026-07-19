@@ -1,41 +1,44 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { auditApi } from '@/lib/api/audit.api';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { auditApi } from "@/lib/api/audit.api";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Share2, Download, Check, Copy, Sparkles, Lock } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Share2, Check, Copy, Sparkles, Lock } from "lucide-react";
 
 interface LeadCaptureModalProps {
   shareSlug: string;
   teamSize: number;
 }
 
-export function LeadCaptureModal({ shareSlug, teamSize }: LeadCaptureModalProps) {
+export function LeadCaptureModal({
+  shareSlug,
+  teamSize,
+}: LeadCaptureModalProps) {
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [role, setRole] = useState('');
+  const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
-    typeof window !== 'undefined'
+    typeof window !== "undefined"
       ? `${window.location.origin}/share/${shareSlug}`
       : `http://localhost:3000/share/${shareSlug}`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid corporate email address.');
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid corporate email address.");
       return;
     }
 
@@ -52,7 +55,7 @@ export function LeadCaptureModal({ shareSlug, teamSize }: LeadCaptureModalProps)
       });
       setSubmitted(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to capture lead details.');
+      setError(err.message || "Failed to capture lead details.");
     } finally {
       setLoading(false);
     }
@@ -85,7 +88,9 @@ export function LeadCaptureModal({ shareSlug, teamSize }: LeadCaptureModalProps)
               Unlock Shareable Link & Executive Summary
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-400">
-              Enter your corporate email to generate a permanent shareable executive link (`/share/${shareSlug}`) for your CFO or Engineering Leadership team.
+              Enter your corporate email to generate a permanent shareable
+              executive link (`/share/${shareSlug}`) for your CFO or Engineering
+              Leadership team.
             </DialogDescription>
           </DialogHeader>
 
@@ -93,7 +98,9 @@ export function LeadCaptureModal({ shareSlug, teamSize }: LeadCaptureModalProps)
             <div className="py-6 space-y-6 text-center">
               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2">
                 <Check className="w-8 h-8 text-emerald-400 mx-auto" />
-                <h4 className="font-bold text-base">Report Unlocked & Saved!</h4>
+                <h4 className="font-bold text-base">
+                  Report Unlocked & Saved!
+                </h4>
                 <p className="text-xs text-zinc-400">
                   Your permanent executive report URL is ready for distribution.
                 </p>
@@ -111,8 +118,12 @@ export function LeadCaptureModal({ shareSlug, teamSize }: LeadCaptureModalProps)
                   onClick={handleCopyLink}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1 flex items-center gap-1.5 shrink-0"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copied ? 'Copied!' : 'Copy Link'}
+                  {copied ? (
+                    <Check className="w-3.5 h-3.5" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  {copied ? "Copied!" : "Copy Link"}
                 </Button>
               </div>
 

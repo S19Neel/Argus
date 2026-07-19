@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/store/store';
+import React from "react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
   addTool,
   applyPreset,
@@ -14,15 +14,15 @@ import {
   setPrimaryUseCase,
   setTeamSize,
   updateTool,
-} from '@/store/auditSlice';
-import { INSTANT_PRESETS } from '@/constants/presets.constants';
-import { SUPPORTED_TOOLS, USE_CASES } from '@/constants/pricing.constants';
-import { formatCurrency } from '@/lib/utils/formatters';
-import { auditApi } from '@/lib/api/audit.api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
+} from "@/store/auditSlice";
+import { INSTANT_PRESETS } from "@/constants/presets.constants";
+import { SUPPORTED_TOOLS, USE_CASES } from "@/constants/pricing.constants";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { auditApi } from "@/lib/api/audit.api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import {
   Plus,
   Trash2,
@@ -33,7 +33,7 @@ import {
   RefreshCw,
   ArrowRight,
   ShieldCheck,
-} from 'lucide-react';
+} from "lucide-react";
 
 export function StackBuilderForm() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export function StackBuilderForm() {
     const currentTool = tools[index];
     const updatedTool = { ...currentTool, [field]: value };
 
-    if (field === 'toolName') {
+    if (field === "toolName") {
       const foundConfig = SUPPORTED_TOOLS.find((t) => t.toolName === value);
       if (foundConfig) {
         const firstTier = Object.keys(foundConfig.tiers)[0];
@@ -74,7 +74,7 @@ export function StackBuilderForm() {
         updatedTool.currentMonthlySpend =
           tierConfig.monthlyPricePerSeat * updatedTool.seats;
       }
-    } else if (field === 'plan') {
+    } else if (field === "plan") {
       const foundConfig = SUPPORTED_TOOLS.find(
         (t) => t.toolName === currentTool.toolName,
       );
@@ -83,14 +83,14 @@ export function StackBuilderForm() {
         updatedTool.currentMonthlySpend =
           tierConfig.monthlyPricePerSeat * updatedTool.seats;
       }
-    } else if (field === 'seats') {
+    } else if (field === "seats") {
       const numSeats = Number(value) || 0;
       const foundConfig = SUPPORTED_TOOLS.find(
         (t) => t.toolName === currentTool.toolName,
       );
       if (foundConfig && foundConfig.tiers[currentTool.plan]) {
         const tierConfig = foundConfig.tiers[currentTool.plan];
-        if (tierConfig.billingType === 'per_seat') {
+        if (tierConfig.billingType === "per_seat") {
           updatedTool.currentMonthlySpend =
             tierConfig.monthlyPricePerSeat * numSeats;
         }
@@ -103,7 +103,7 @@ export function StackBuilderForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tools.length === 0) {
-      dispatch(setError('Please add at least one tool to evaluate.'));
+      dispatch(setError("Please add at least one tool to evaluate."));
       return;
     }
 
@@ -126,7 +126,7 @@ export function StackBuilderForm() {
       dispatch(setAuditResult(result));
       router.push(`/dashboard/${result.shareSlug}`);
     } catch (err: any) {
-      dispatch(setError(err.message || 'Failed to analyze stack.'));
+      dispatch(setError(err.message || "Failed to analyze stack."));
     } finally {
       dispatch(setLoading(false));
     }
@@ -134,11 +134,11 @@ export function StackBuilderForm() {
 
   const getPresetIcon = (id: string) => {
     switch (id) {
-      case 'startup-coding':
+      case "startup-coding":
         return <Zap className="w-4 h-4 text-emerald-400" />;
-      case 'design-writing':
+      case "design-writing":
         return <TrendingUp className="w-4 h-4 text-teal-400" />;
-      case 'enterprise-copilot':
+      case "enterprise-copilot":
         return <Building2 className="w-4 h-4 text-violet-400" />;
       default:
         return <Sparkles className="w-4 h-4 text-blue-400" />;
@@ -157,8 +157,8 @@ export function StackBuilderForm() {
             </h3>
           </div>
           <p className="text-xs text-zinc-400">
-            Select an instant architectural configuration below to test defensible
-            rule triggers and live executive summaries immediately.
+            Select an instant architectural configuration below to test
+            defensible rule triggers and live executive summaries immediately.
           </p>
         </div>
         <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -206,8 +206,8 @@ export function StackBuilderForm() {
                 Configure AI Stack & Parameters
               </CardTitle>
               <p className="text-sm text-zinc-400 mt-1">
-                Enter your organization&apos;s active AI tools, tiers, and monthly
-                licensing spend below.
+                Enter your organization&apos;s active AI tools, tiers, and
+                monthly licensing spend below.
               </p>
             </div>
             <Button
@@ -235,7 +235,7 @@ export function StackBuilderForm() {
                   Total Team Size (Seats)
                 </label>
                 <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 font-mono text-sm">
-                  {teamSize} {teamSize === 1 ? 'User' : 'Users'}
+                  {teamSize} {teamSize === 1 ? "User" : "Users"}
                 </Badge>
               </div>
               <Slider
@@ -248,7 +248,7 @@ export function StackBuilderForm() {
                     setTeamSize(
                       Array.isArray(val)
                         ? val[0]
-                        : typeof val === 'number'
+                        : typeof val === "number"
                           ? val
                           : 10,
                     ),
@@ -278,8 +278,8 @@ export function StackBuilderForm() {
                 ))}
               </select>
               <p className="text-xs text-zinc-500">
-                Argus uses your workflow to determine domain-specific tool alternatives
-                and feature parity requirements.
+                Argus uses your workflow to determine domain-specific tool
+                alternatives and feature parity requirements.
               </p>
             </div>
           </div>
@@ -323,7 +323,7 @@ export function StackBuilderForm() {
                   );
                   const availableTiers = toolConfig
                     ? Object.keys(toolConfig.tiers)
-                    : ['Free', 'Pro', 'Team', 'Enterprise'];
+                    : ["Free", "Pro", "Team", "Enterprise"];
 
                   return (
                     <div
@@ -338,7 +338,7 @@ export function StackBuilderForm() {
                         <select
                           value={tool.toolName}
                           onChange={(e) =>
-                            handleToolChange(index, 'toolName', e.target.value)
+                            handleToolChange(index, "toolName", e.target.value)
                           }
                           className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         >
@@ -358,7 +358,7 @@ export function StackBuilderForm() {
                         <select
                           value={tool.plan}
                           onChange={(e) =>
-                            handleToolChange(index, 'plan', e.target.value)
+                            handleToolChange(index, "plan", e.target.value)
                           }
                           className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                         >
@@ -382,7 +382,7 @@ export function StackBuilderForm() {
                           onChange={(e) =>
                             handleToolChange(
                               index,
-                              'seats',
+                              "seats",
                               Number(e.target.value),
                             )
                           }
@@ -407,7 +407,7 @@ export function StackBuilderForm() {
                             onChange={(e) =>
                               handleToolChange(
                                 index,
-                                'currentMonthlySpend',
+                                "currentMonthlySpend",
                                 Number(e.target.value),
                               )
                             }

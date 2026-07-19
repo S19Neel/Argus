@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles, CheckCircle2 } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Sparkles, CheckCircle2 } from "lucide-react";
 
 interface ExecutiveSummaryCardProps {
   summaryParagraph?: string | null;
@@ -27,7 +26,8 @@ export function ExecutiveSummaryCard({
                 Executive AI Architectural Synthesis
               </h3>
               <p className="text-xs text-zinc-400">
-                Synthesized by Argus Engine (`gpt-4o-mini` with defensible structural rules)
+                Synthesized by Argus Engine (`gpt-4o-mini` with defensible
+                structural rules)
               </p>
             </div>
           </div>

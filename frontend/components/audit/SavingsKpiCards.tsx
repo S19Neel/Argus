@@ -1,10 +1,14 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { formatCurrency, getStatusConfig } from '@/lib/utils/formatters';
-import { DollarSign, TrendingDown, ShieldAlert, CheckCircle } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency, getStatusConfig } from "@/lib/utils/formatters";
+import {
+  DollarSign,
+  TrendingDown,
+  ShieldAlert,
+  CheckCircle,
+} from "lucide-react";
 
 interface SavingsKpiCardsProps {
   totalMonthlySavings: number;
@@ -92,7 +96,7 @@ export function SavingsKpiCards({
               Stack Efficiency Index
             </span>
             <div className="p-2 rounded-xl bg-zinc-800 text-zinc-300 border border-zinc-700">
-              {overallStatus === 'optimal' ? (
+              {overallStatus === "optimal" ? (
                 <CheckCircle className="w-4 h-4 text-amber-400" />
               ) : (
                 <ShieldAlert className="w-4 h-4 text-emerald-400" />
@@ -100,13 +104,15 @@ export function SavingsKpiCards({
             </div>
           </div>
           <div className="space-y-3 pt-1">
-            <Badge className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${statusConfig.badgeClass}`}>
+            <Badge
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${statusConfig.badgeClass}`}
+            >
               {statusConfig.label}
             </Badge>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              {overallStatus === 'optimal'
-                ? 'Your organization is already operating with high seat tier efficiency and zero critical structural waste.'
-                : 'Defensible optimization rules triggered across your licensing tiers, billing cycles, or retail allocations.'}
+              {overallStatus === "optimal"
+                ? "Your organization is already operating with high seat tier efficiency and zero critical structural waste."
+                : "Defensible optimization rules triggered across your licensing tiers, billing cycles, or retail allocations."}
             </p>
           </div>
         </CardContent>

@@ -1,11 +1,10 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
-  AuditInputDto,
   PersistedAuditResultDto,
   PrimaryUseCase,
   ToolInputDto,
-} from '@/types/audit.types';
-import { INSTANT_PRESETS } from '@/constants/presets.constants';
+} from "@/types/audit.types";
+import { INSTANT_PRESETS } from "@/constants/presets.constants";
 
 interface AuditState {
   teamSize: number;
@@ -18,11 +17,11 @@ interface AuditState {
 
 const initialState: AuditState = {
   teamSize: 10,
-  primaryUseCase: 'coding',
+  primaryUseCase: "coding",
   tools: [
     {
-      toolName: 'Cursor',
-      plan: 'Business',
+      toolName: "Cursor",
+      plan: "Business",
       seats: 10,
       currentMonthlySpend: 400,
     },
@@ -33,7 +32,7 @@ const initialState: AuditState = {
 };
 
 const auditSlice = createSlice({
-  name: 'audit',
+  name: "audit",
   initialState,
   reducers: {
     setTeamSize(state, action: PayloadAction<number>) {
@@ -70,7 +69,10 @@ const auditSlice = createSlice({
         state.error = null;
       }
     },
-    setAuditResult(state, action: PayloadAction<PersistedAuditResultDto | null>) {
+    setAuditResult(
+      state,
+      action: PayloadAction<PersistedAuditResultDto | null>,
+    ) {
       state.auditResult = action.payload;
     },
     setLoading(state, action: PayloadAction<boolean>) {

@@ -1,11 +1,16 @@
-import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from "axios";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const baseURL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
 
 export const axiosInstance: AxiosInstance = axios.create({
   baseURL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 15000,
 });
@@ -27,7 +32,7 @@ axiosInstance.interceptors.response.use(
     const customError =
       error.response?.data?.message ||
       error.message ||
-      'An unexpected network error occurred';
+      "An unexpected network error occurred";
     return Promise.reject(new Error(customError));
   },
 );

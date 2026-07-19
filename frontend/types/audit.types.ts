@@ -1,21 +1,21 @@
 export type PrimaryUseCase =
-  | 'coding'
-  | 'writing'
-  | 'design'
-  | 'data_analysis'
-  | 'customer_support';
+  | "coding"
+  | "writing"
+  | "design"
+  | "data_analysis"
+  | "customer_support";
 
 export type RecommendedAction =
-  | 'switch_plan'
-  | 'switch_tool'
-  | 'switch_to_credits'
-  | 'downgrade'
-  | 'keep';
+  | "switch_plan"
+  | "switch_tool"
+  | "switch_to_credits"
+  | "downgrade"
+  | "keep";
 
 export type OverallAuditStatus =
-  | 'optimal'
-  | 'moderate_savings'
-  | 'high_savings';
+  | "optimal"
+  | "moderate_savings"
+  | "high_savings";
 
 export interface ToolInputDto {
   toolName: string;

@@ -1,6 +1,5 @@
-import React from 'react';
-import { StackBuilderForm } from '@/components/audit/StackBuilderForm';
-import { ShieldCheck, Sparkles, Cpu, Layers } from 'lucide-react';
+import { StackBuilderForm } from "@/components/audit/StackBuilderForm";
+import { ShieldCheck, Sparkles, Cpu, Layers } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -19,15 +18,16 @@ export default function HomePage() {
             Argus Architecture & Spend Auditor — v1.0
           </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.1]">
-            Eliminate Architectural Waste across your{' '}
+            Eliminate Architectural Waste across your{" "}
             <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200 bg-clip-text text-transparent">
               AI Tool Stack
             </span>
           </h1>
           <p className="text-base sm:text-lg text-zinc-300 leading-relaxed font-normal max-w-2xl mx-auto">
-            Defensible spend audits for engineering organizations. Evaluate seat overkill,
-            annual billing discounts, retail vs direct API parity, and domain-specific
-            tool redundancy without sacrificing developer productivity.
+            Defensible spend audits for engineering organizations. Evaluate seat
+            overkill, annual billing discounts, retail vs direct API parity, and
+            domain-specific tool redundancy without sacrificing developer
+            productivity.
           </p>
 
           {/* Quick Pillar Value Props */}
@@ -60,10 +60,12 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="max-w-6xl mx-auto w-full pt-16 pb-8 border-t border-zinc-800/60 mt-20 text-center text-xs text-zinc-500 space-y-2 relative z-10">
         <p>
-          Argus AI Architectural Audit Engine — Built for TechVruk Round 1 Evaluation.
+          Argus AI Architectural Audit Engine — Built for TechVruk Round 1
+          Evaluation.
         </p>
         <p className="text-zinc-600">
-          All recommendations strictly verify current pricing data (`PRICING_DATA.md`) across 10 core tools.
+          All recommendations strictly verify current pricing data
+          (`PRICING_DATA.md`) across 10 core tools.
         </p>
       </footer>
     </main>

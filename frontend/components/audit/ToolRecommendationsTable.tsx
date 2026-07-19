@@ -1,7 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,11 +8,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ToolAuditBreakdownDto } from '@/types/audit.types';
-import { formatCurrency, getActionBadgeClass } from '@/lib/utils/formatters';
-import { Layers, ArrowRight } from 'lucide-react';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ToolAuditBreakdownDto } from "@/types/audit.types";
+import { formatCurrency, getActionBadgeClass } from "@/lib/utils/formatters";
+import { Layers, ArrowRight } from "lucide-react";
 
 interface ToolRecommendationsTableProps {
   toolBreakdowns: ToolAuditBreakdownDto[];
@@ -30,7 +29,8 @@ export function ToolRecommendationsTable({
           Defensible Itemized Recommendations by Pillar
         </CardTitle>
         <p className="text-xs text-zinc-400 mt-1">
-          Each recommendation maintains 100% engineering output while eliminating structural tier overkill.
+          Each recommendation maintains 100% engineering output while
+          eliminating structural tier overkill.
         </p>
       </CardHeader>
       <CardContent className="p-0">
@@ -67,7 +67,9 @@ export function ToolRecommendationsTable({
                   >
                     <TableCell className="py-4 px-6 font-medium text-white">
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{item.toolName}</span>
+                        <span className="text-sm font-semibold">
+                          {item.toolName}
+                        </span>
                         <span className="text-xs text-zinc-400">
                           Tier: {item.currentPlan}
                         </span>
@@ -103,12 +105,12 @@ export function ToolRecommendationsTable({
                     <TableCell className="py-4 font-mono">
                       <span
                         className={`text-sm font-bold ${
-                          isSavings ? 'text-emerald-400' : 'text-zinc-500'
+                          isSavings ? "text-emerald-400" : "text-zinc-500"
                         }`}
                       >
                         {isSavings
                           ? `+${formatCurrency(item.monthlySavings)}/mo`
-                          : '$0/mo'}
+                          : "$0/mo"}
                       </span>
                     </TableCell>
 

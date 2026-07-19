@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/store/store';
-import { setAuditResult } from '@/store/auditSlice';
-import { auditApi } from '@/lib/api/audit.api';
-import { ExecutiveSummaryCard } from '@/components/audit/ExecutiveSummaryCard';
-import { SavingsKpiCards } from '@/components/audit/SavingsKpiCards';
-import { SpendComparisonCharts } from '@/components/audit/SpendComparisonCharts';
-import { ToolRecommendationsTable } from '@/components/audit/ToolRecommendationsTable';
-import { LeadCaptureModal } from '@/components/audit/LeadCaptureModal';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { setAuditResult } from "@/store/auditSlice";
+import { auditApi } from "@/lib/api/audit.api";
+import { ExecutiveSummaryCard } from "@/components/audit/ExecutiveSummaryCard";
+import { SavingsKpiCards } from "@/components/audit/SavingsKpiCards";
+import { SpendComparisonCharts } from "@/components/audit/SpendComparisonCharts";
+import { ToolRecommendationsTable } from "@/components/audit/ToolRecommendationsTable";
+import { LeadCaptureModal } from "@/components/audit/LeadCaptureModal";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ShieldCheck, AlertCircle } from "lucide-react";
 
 export default function DashboardSlugPage() {
   const params = useParams();
@@ -53,7 +53,7 @@ export default function DashboardSlugPage() {
             }),
           );
         } catch (err: any) {
-          setError(err.message || 'Could not load audit report.');
+          setError(err.message || "Could not load audit report.");
         } finally {
           setLoading(false);
         }
@@ -69,9 +69,12 @@ export default function DashboardSlugPage() {
     return (
       <div className="min-h-screen bg-[#090d16] flex flex-col items-center justify-center p-8 text-center space-y-4">
         <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto" />
-        <h2 className="text-xl font-bold text-white">Synthesizing Architectural Findings...</h2>
+        <h2 className="text-xl font-bold text-white">
+          Synthesizing Architectural Findings...
+        </h2>
         <p className="text-sm text-zinc-400 max-w-md">
-          Verifying seat overkill rules, calculating annual run-rate discounts, and generating AI executive analysis.
+          Verifying seat overkill rules, calculating annual run-rate discounts,
+          and generating AI executive analysis.
         </p>
       </div>
     );
@@ -83,11 +86,16 @@ export default function DashboardSlugPage() {
         <div className="p-4 rounded-full bg-red-500/10 text-red-400 border border-red-500/30">
           <AlertCircle className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl font-bold text-white">Audit Report Not Found</h2>
+        <h2 className="text-2xl font-bold text-white">
+          Audit Report Not Found
+        </h2>
         <p className="text-sm text-zinc-400 max-w-md">
           {error || `No report found with share slug: ${slug}`}
         </p>
-        <Button onClick={() => router.push('/')} className="bg-emerald-600 hover:bg-emerald-500 text-white">
+        <Button
+          onClick={() => router.push("/")}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white"
+        >
           Return to Stack Builder
         </Button>
       </div>
@@ -107,7 +115,7 @@ export default function DashboardSlugPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
             className="text-zinc-400 hover:text-white -ml-2 mb-1 text-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Stack Builder
@@ -122,7 +130,8 @@ export default function DashboardSlugPage() {
             </span>
           </div>
           <p className="text-sm text-zinc-400">
-            Defensible recommendations prepared for your organization by the Argus Engine.
+            Defensible recommendations prepared for your organization by the
+            Argus Engine.
           </p>
         </div>
 

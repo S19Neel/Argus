@@ -1,9 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ToolAuditBreakdownDto } from '@/types/audit.types';
-import { formatCurrency } from '@/lib/utils/formatters';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ToolAuditBreakdownDto } from "@/types/audit.types";
+import { formatCurrency } from "@/lib/utils/formatters";
 import {
   BarChart,
   Bar,
@@ -15,14 +14,21 @@ import {
   Pie,
   Cell,
   Legend,
-} from 'recharts';
-import { BarChart3, PieChart as PieIcon } from 'lucide-react';
+} from "recharts";
+import { BarChart3, PieChart as PieIcon } from "lucide-react";
 
 interface SpendComparisonChartsProps {
   toolBreakdowns: ToolAuditBreakdownDto[];
 }
 
-const COLORS = ['#10b981', '#14b8a6', '#6366f1', '#8b5cf6', '#f59e0b', '#ec4899'];
+const COLORS = [
+  "#10b981",
+  "#14b8a6",
+  "#6366f1",
+  "#8b5cf6",
+  "#f59e0b",
+  "#ec4899",
+];
 
 export function SpendComparisonCharts({
   toolBreakdowns,
@@ -49,13 +55,17 @@ export function SpendComparisonCharts({
               Current vs Optimized Monthly Spend
             </CardTitle>
             <p className="text-xs text-zinc-400 mt-1">
-              Side-by-side spend comparison before and after structural optimization ($ USD)
+              Side-by-side spend comparison before and after structural
+              optimization ($ USD)
             </p>
           </div>
         </CardHeader>
         <CardContent className="p-0 pt-6 h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={barData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <BarChart
+              data={barData}
+              margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+            >
               <XAxis
                 dataKey="name"
                 stroke="#71717a"
@@ -65,14 +75,14 @@ export function SpendComparisonCharts({
               <YAxis stroke="#71717a" fontSize={12} tickLine={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#090d16',
-                  borderColor: '#27272a',
-                  borderRadius: '12px',
-                  color: '#fff',
+                  backgroundColor: "#090d16",
+                  borderColor: "#27272a",
+                  borderRadius: "12px",
+                  color: "#fff",
                 }}
-                formatter={(val: any) => [formatCurrency(Number(val) || 0), '']}
+                formatter={(val: any) => [formatCurrency(Number(val) || 0), ""]}
               />
-              <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }} />
+              <Legend wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }} />
               <Bar
                 dataKey="Current"
                 fill="#3f3f46"
@@ -99,7 +109,8 @@ export function SpendComparisonCharts({
               Current Stack Spend Allocation
             </CardTitle>
             <p className="text-xs text-zinc-400 mt-1">
-              Proportional distribution of current monthly licensing spend across tools
+              Proportional distribution of current monthly licensing spend
+              across tools
             </p>
           </div>
         </CardHeader>
@@ -127,14 +138,17 @@ export function SpendComparisonCharts({
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#090d16',
-                  borderColor: '#27272a',
-                  borderRadius: '12px',
-                  color: '#fff',
+                  backgroundColor: "#090d16",
+                  borderColor: "#27272a",
+                  borderRadius: "12px",
+                  color: "#fff",
                 }}
-                formatter={(val: any) => [formatCurrency(Number(val) || 0), 'Monthly Spend']}
+                formatter={(val: any) => [
+                  formatCurrency(Number(val) || 0),
+                  "Monthly Spend",
+                ]}
               />
-              <Legend wrapperStyle={{ fontSize: '11px', color: '#a1a1aa' }} />
+              <Legend wrapperStyle={{ fontSize: "11px", color: "#a1a1aa" }} />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

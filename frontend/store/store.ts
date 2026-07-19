@@ -1,6 +1,6 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import auditReducer from './auditSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import auditReducer from "./auditSlice";
 
 export const store = configureStore({
   reducer: {
