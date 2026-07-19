@@ -72,8 +72,12 @@
       "^.+\\.(t|j)s$": "<rootDir>/../test/jest-transform.js"
     },
     "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1",
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
+    "modulePaths": [
+      "<rootDir>/.."
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
