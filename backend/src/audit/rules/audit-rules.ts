@@ -5,6 +5,28 @@ import {
   ToolAuditBreakdownDto,
 } from '../dto/audit.dto';
 
+export function formatUseCaseLabel(useCase: string): string {
+  switch (useCase) {
+    case 'coding':
+      return 'Software Engineering & Code Generation';
+    case 'writing':
+      return 'Content Writing & Copywriting';
+    case 'design':
+      return 'UI/UX & Product Design';
+    case 'data':
+    case 'data_analysis':
+      return 'Data Analysis & Pipelines';
+    case 'research':
+      return 'Research & Deep Tech Analysis';
+    case 'customer_support':
+      return 'Customer Support Automation';
+    case 'mixed':
+      return 'Mixed / Full-Stack AI Workflows';
+    default:
+      return useCase;
+  }
+}
+
 export function evaluateToolAuditBreakdown(
   tool: ToolItemInputDto,
   teamSize: number,
@@ -16,9 +38,11 @@ export function evaluateToolAuditBreakdown(
       ? tool.currentMonthlySpend
       : computeDefaultSpend(toolName, plan, seats);
 
+  const formattedUseCase = formatUseCaseLabel(primaryUseCase);
+
   // Pillar 4: Retail vs Credits / API Direct for Data/Pipeline Workloads
   if (
-    primaryUseCase === 'data' &&
+    (primaryUseCase === 'data' || primaryUseCase === 'data_analysis') &&
     ['ChatGPT', 'Claude', 'Gemini'].includes(toolName) &&
     !plan.toLowerCase().includes('free') &&
     (seats >= 4 || currentSpend >= 80)
@@ -35,7 +59,7 @@ export function evaluateToolAuditBreakdown(
       estimatedMonthlyCost: estimatedCost,
       monthlySavings,
       annualSavings: monthlySavings * 12,
-      reason: `For automated data extraction and pipeline workloads across ${seats} seat(s), paying flat retail subscriptions ($${currentSpend}/mo) wastes idle seat capacity; switching to direct API billing with 50% Batch discounts drops estimated monthly consumption to ~$${estimatedCost}/mo.`,
+      reason: `For automated data extraction and pipeline workloads across ${seats} seat(s) (${formattedUseCase}), paying flat retail subscriptions ($${currentSpend}/mo) wastes idle seat capacity; switching to direct API billing with 50% Batch discounts drops estimated monthly consumption to ~$${estimatedCost}/mo.`,
     };
   }
 
@@ -107,7 +131,9 @@ export function evaluateToolAuditBreakdown(
 
   // Pillar 3: Cheaper alternative tool with similar capability for their use case?
   if (
-    (primaryUseCase === 'writing' || primaryUseCase === 'research') &&
+    (primaryUseCase === 'writing' ||
+      primaryUseCase === 'research' ||
+      primaryUseCase === 'customer_support') &&
     ['Cursor', 'Windsurf', 'v0'].includes(toolName) &&
     !plan.toLowerCase().includes('free')
   ) {
@@ -125,7 +151,31 @@ export function evaluateToolAuditBreakdown(
         estimatedMonthlyCost: estimatedCost,
         monthlySavings,
         annualSavings: monthlySavings * 12,
-        reason: `Developer-first IDE tools like ${toolName} ($${Math.round(currentSpend / seats)}/mo) are structurally unsuited and overpriced for ${primaryUseCase}; migrating to Claude Pro ($${claudeRate}/mo) provides superior long-context document synthesis and writing ergonomics while lowering spend.`,
+        reason: `Developer-first IDE tools like ${toolName} ($${Math.round(currentSpend / seats)}/mo) are structurally unsuited and overpriced for ${formattedUseCase}; migrating to Claude Pro ($${claudeRate}/mo) provides superior long-context document synthesis and general task ergonomics while lowering spend.`,
+      };
+    }
+  }
+
+  if (
+    primaryUseCase === 'design' &&
+    ['Cursor', 'Windsurf'].includes(toolName) &&
+    !plan.toLowerCase().includes('free')
+  ) {
+    const claudeRate =
+      TOOL_PRICING_REGISTRY.Claude.Pro?.monthlyRatePerSeat ?? 20;
+    const estimatedCost = seats * claudeRate;
+    const monthlySavings = Math.max(0, currentSpend - estimatedCost);
+    if (monthlySavings > 0 || currentSpend > estimatedCost) {
+      return {
+        toolName,
+        currentPlan: plan,
+        currentSpend,
+        recommendedAction: 'switch_tool',
+        recommendedPlanOrTool: 'Claude Pro',
+        estimatedMonthlyCost: estimatedCost,
+        monthlySavings,
+        annualSavings: monthlySavings * 12,
+        reason: `Code-only IDE tools like ${toolName} ($${Math.round(currentSpend / seats)}/mo) are structurally unsuited for ${formattedUseCase}; migrating to Claude Pro ($${claudeRate}/mo) or specialized design tools provides superior multimodal feedback and visual workflows while optimizing spend.`,
       };
     }
   }
@@ -149,7 +199,7 @@ export function evaluateToolAuditBreakdown(
       estimatedMonthlyCost: estimatedCost,
       monthlySavings,
       annualSavings: monthlySavings * 12,
-      reason: `At ${seats} seats for code generation, Copilot Enterprise ($${Math.round(currentSpend / seats)}/seat/mo) carries a massive premium primarily for custom knowledge bases; shifting to Copilot Business ($${businessRate}/seat/mo) delivers core IDE auto-completion and chat while cutting monthly spend by $${monthlySavings}.`,
+      reason: `At ${seats} seats for ${formattedUseCase}, Copilot Enterprise ($${Math.round(currentSpend / seats)}/seat/mo) carries a massive premium primarily for custom knowledge bases; shifting to Copilot Business ($${businessRate}/seat/mo) delivers core IDE auto-completion and chat while cutting monthly spend by $${monthlySavings}.`,
     };
   }
 
@@ -157,7 +207,9 @@ export function evaluateToolAuditBreakdown(
   if (
     toolName === 'Claude' &&
     (plan.includes('Max 20x') || plan.includes('Max 5x')) &&
-    (primaryUseCase === 'writing' || primaryUseCase === 'coding')
+    primaryUseCase !== 'research' &&
+    primaryUseCase !== 'data' &&
+    primaryUseCase !== 'data_analysis'
   ) {
     const proRate = TOOL_PRICING_REGISTRY.Claude.Pro?.monthlyRatePerSeat ?? 20;
     const estimatedCost = seats * proRate;
@@ -171,14 +223,16 @@ export function evaluateToolAuditBreakdown(
       estimatedMonthlyCost: estimatedCost,
       monthlySavings,
       annualSavings: monthlySavings * 12,
-      reason: `A $${Math.round(currentSpend / seats)}/mo Claude ${plan} allocation is over-provisioned for standard ${primaryUseCase} workflows; downgrading to Claude Pro ($${proRate}/mo) saves $${monthlySavings}/mo while preserving full Sonnet and Opus access.`,
+      reason: `A $${Math.round(currentSpend / seats)}/mo Claude ${plan} allocation is over-provisioned for standard ${formattedUseCase} workflows; downgrading to Claude Pro ($${proRate}/mo) saves $${monthlySavings}/mo while preserving full Sonnet and Opus access.`,
     };
   }
 
   if (
     toolName === 'ChatGPT' &&
     plan.includes('Pro') &&
-    primaryUseCase !== 'research'
+    primaryUseCase !== 'research' &&
+    primaryUseCase !== 'data' &&
+    primaryUseCase !== 'data_analysis'
   ) {
     const plusRate =
       TOOL_PRICING_REGISTRY.ChatGPT.Plus?.monthlyRatePerSeat ?? 20;
@@ -193,7 +247,7 @@ export function evaluateToolAuditBreakdown(
       estimatedMonthlyCost: estimatedCost,
       monthlySavings,
       annualSavings: monthlySavings * 12,
-      reason: `The $${Math.round(currentSpend / seats)}/mo ChatGPT ${plan} tier vastly exceeds standard rate limits required for ${primaryUseCase}; shifting to ChatGPT Plus ($${plusRate}/mo) reduces spend by $${monthlySavings}/mo without throttling daily productivity.`,
+      reason: `The $${Math.round(currentSpend / seats)}/mo ChatGPT ${plan} tier vastly exceeds standard rate limits required for ${formattedUseCase}; shifting to ChatGPT Plus ($${plusRate}/mo) reduces spend by $${monthlySavings}/mo without throttling daily productivity.`,
     };
   }
 
@@ -222,7 +276,7 @@ export function evaluateToolAuditBreakdown(
         estimatedMonthlyCost: estimatedCost,
         monthlySavings,
         annualSavings: monthlySavings * 12,
-        reason: `Converting your ${seats} Cursor ${plan} seat(s) from monthly ($${monthlyRate}/mo) to annual billing ($${annualRate}/mo) unlocks an immediate ${discountPct}% cost reduction ($${monthlySavings * 12}/yr) with zero workflow changes.`,
+        reason: `Converting your ${seats} Cursor ${plan} seat(s) across ${formattedUseCase} from monthly ($${monthlyRate}/mo) to annual billing ($${annualRate}/mo) unlocks an immediate ${discountPct}% cost reduction ($${monthlySavings * 12}/yr) with zero workflow changes.`,
       };
     }
   }
@@ -249,7 +303,7 @@ export function evaluateToolAuditBreakdown(
         estimatedMonthlyCost: estimatedCost,
         monthlySavings,
         annualSavings: Math.round(monthlySavings * 12),
-        reason: `Locking in annual billing for ${seats} GitHub Copilot ${plan} seat(s) drops effective seat cost from $${monthlyRate}/mo to $${annualRate}/mo ($${Math.round(annualRate * 12)}/yr), yielding guaranteed $${Math.round(monthlySavings * 12)} annual efficiency gains.`,
+        reason: `Locking in annual billing for ${seats} GitHub Copilot ${plan} seat(s) drops effective seat cost from $${monthlyRate}/mo to $${annualRate}/mo ($${Math.round(annualRate * 12)}/yr), yielding guaranteed $${Math.round(monthlySavings * 12)} annual efficiency gains across ${formattedUseCase}.`,
       };
     }
   }
@@ -264,7 +318,7 @@ export function evaluateToolAuditBreakdown(
     estimatedMonthlyCost: currentSpend,
     monthlySavings: 0,
     annualSavings: 0,
-    reason: `Your current ${plan} plan ($${currentSpend}/mo) is well-optimized for ${seats} seat(s) in ${primaryUseCase} — no structural waste detected. You're spending well.`,
+    reason: `Your current ${plan} plan ($${currentSpend}/mo) is well-optimized for ${seats} seat(s) in ${formattedUseCase} — no structural waste detected. You're spending well.`,
   };
 }
 

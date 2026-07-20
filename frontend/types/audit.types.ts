@@ -2,8 +2,11 @@ export type PrimaryUseCase =
   | "coding"
   | "writing"
   | "design"
+  | "data"
   | "data_analysis"
-  | "customer_support";
+  | "research"
+  | "customer_support"
+  | "mixed";
 
 export type RecommendedAction =
   | "switch_plan"

@@ -20,7 +20,10 @@ interface SplashScreenProps {
   onTranslateStart?: () => void;
 }
 
-export function SplashScreen({ onComplete, onTranslateStart }: SplashScreenProps) {
+export function SplashScreen({
+  onComplete,
+  onTranslateStart,
+}: SplashScreenProps) {
   const [phase, setPhase] = useState<"shimmer" | "translate" | "done">(
     "shimmer",
   );
@@ -43,31 +46,34 @@ export function SplashScreen({ onComplete, onTranslateStart }: SplashScreenProps
     }
 
     // Phase 1→2: After shimmer + hold
-    const t1 = setTimeout(() => {
-      try {
-        const headerEl = document.getElementById("header-argus-logo");
-        const splashEl = document.getElementById("splash-logo-container");
-        if (headerEl && splashEl) {
-          const targetRect = headerEl.getBoundingClientRect();
-          const startRect = splashEl.getBoundingClientRect();
+    const t1 = setTimeout(
+      () => {
+        try {
+          const headerEl = document.getElementById("header-argus-logo");
+          const splashEl = document.getElementById("splash-logo-container");
+          if (headerEl && splashEl) {
+            const targetRect = headerEl.getBoundingClientRect();
+            const startRect = splashEl.getBoundingClientRect();
 
-          const targetX = targetRect.left + targetRect.width / 2;
-          const targetY = targetRect.top + targetRect.height / 2;
-          const startX = startRect.left + startRect.width / 2;
-          const startY = startRect.top + startRect.height / 2;
+            const targetX = targetRect.left + targetRect.width / 2;
+            const targetY = targetRect.top + targetRect.height / 2;
+            const startX = startRect.left + startRect.width / 2;
+            const startY = startRect.top + startRect.height / 2;
 
-          setTransformTarget({
-            x: targetX - startX,
-            y: targetY - startY,
-            scale: targetRect.width / startRect.width,
-          });
+            setTransformTarget({
+              x: targetX - startX,
+              y: targetY - startY,
+              scale: targetRect.width / startRect.width,
+            });
+          }
+        } catch {
+          // use default
         }
-      } catch {
-        // use default
-      }
-      if (onTranslateStart) onTranslateStart();
-      setPhase("translate");
-    }, (TOTAL_SHIMMER + HOLD_AFTER_SHIMMER) * 1000);
+        if (onTranslateStart) onTranslateStart();
+        setPhase("translate");
+      },
+      (TOTAL_SHIMMER + HOLD_AFTER_SHIMMER) * 1000,
+    );
 
     // Phase 2→done: After translate completes
     const t2 = setTimeout(() => {
@@ -91,107 +97,105 @@ export function SplashScreen({ onComplete, onTranslateStart }: SplashScreenProps
   return (
     <AnimatePresence>
       <motion.div
-          key="splash-overlay"
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#060a12]"
+        key="splash-overlay"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#060a12]"
+        animate={{
+          backgroundColor:
+            phase === "translate" ? "rgba(6, 10, 18, 0)" : "rgba(6, 10, 18, 1)",
+        }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: TRANSLATE_DURATION, ease: "easeInOut" }}
+      >
+        {/* Ambient glow behind logo */}
+        <motion.div
+          className="absolute w-[500px] h-[500px] rounded-full bg-emerald-500/8 blur-[160px] pointer-events-none"
           animate={{
-            backgroundColor:
-              phase === "translate" ? "rgba(6, 10, 18, 0)" : "rgba(6, 10, 18, 1)",
+            scale: phase === "translate" ? 0.3 : 1,
+            opacity: phase === "translate" ? 0 : 0.6,
           }}
-          exit={{ opacity: 0 }}
           transition={{ duration: TRANSLATE_DURATION, ease: "easeInOut" }}
-        >
-          {/* Ambient glow behind logo */}
-          <motion.div
-            className="absolute w-[500px] h-[500px] rounded-full bg-emerald-500/8 blur-[160px] pointer-events-none"
-            animate={{
-              scale: phase === "translate" ? 0.3 : 1,
-              opacity: phase === "translate" ? 0 : 0.6,
-            }}
-            transition={{ duration: TRANSLATE_DURATION, ease: "easeInOut" }}
-          />
+        />
 
-          <motion.div
-            id="splash-logo-container"
-            className="flex items-center gap-[2px] select-none origin-center"
-            animate={
-              phase === "translate"
-                ? transformTarget
-                : { x: 0, y: 0, scale: 1 }
-            }
-            transition={{
-              duration: TRANSLATE_DURATION,
-              ease: [0.76, 0, 0.24, 1], // custom cubic-bezier for premium feel
-            }}
-          >
-            {LETTERS.map((letter, i) => (
+        <motion.div
+          id="splash-logo-container"
+          className="flex items-center gap-[2px] select-none origin-center"
+          animate={
+            phase === "translate" ? transformTarget : { x: 0, y: 0, scale: 1 }
+          }
+          transition={{
+            duration: TRANSLATE_DURATION,
+            ease: [0.76, 0, 0.24, 1], // custom cubic-bezier for premium feel
+          }}
+        >
+          {LETTERS.map((letter, i) => (
+            <motion.span
+              key={letter + i}
+              className="inline-block text-7xl sm:text-8xl md:text-9xl font-heading font-bold tracking-[0.08em] text-white/10 relative"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: i * LETTER_STAGGER,
+                duration: 0.4,
+                ease: "easeOut",
+              }}
+            >
+              {/* The letter itself */}
+              <span className="relative z-10">{letter}</span>
+
+              {/* Shimmer sweep overlay */}
               <motion.span
-                key={letter + i}
-                className="inline-block text-7xl sm:text-8xl md:text-9xl font-heading font-bold tracking-[0.08em] text-white/10 relative"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
+                className="absolute inset-0 z-20 overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 1, 0] }}
                 transition={{
-                  delay: i * LETTER_STAGGER,
-                  duration: 0.4,
+                  delay: i * LETTER_STAGGER + 0.2,
+                  duration: SHIMMER_DURATION,
+                  times: [0, 0.1, 0.7, 1],
+                  ease: "easeInOut",
+                }}
+              >
+                <span
+                  className="inline-block text-7xl sm:text-8xl md:text-9xl font-heading font-bold tracking-[0.08em]"
+                  style={{
+                    background:
+                      "linear-gradient(120deg, transparent 0%, #10b981 20%, #d4fce0 40%, #ffffff 50%, #d4fce0 60%, #10b981 80%, transparent 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {letter}
+                </span>
+              </motion.span>
+
+              {/* Persistent glow after shimmer */}
+              <motion.span
+                className="absolute inset-0 z-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{
+                  delay: i * LETTER_STAGGER + SHIMMER_DURATION,
+                  duration: 0.5,
                   ease: "easeOut",
                 }}
               >
-                {/* The letter itself */}
-                <span className="relative z-10">{letter}</span>
-
-                {/* Shimmer sweep overlay */}
-                <motion.span
-                  className="absolute inset-0 z-20 overflow-hidden"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 1, 0] }}
-                  transition={{
-                    delay: i * LETTER_STAGGER + 0.2,
-                    duration: SHIMMER_DURATION,
-                    times: [0, 0.1, 0.7, 1],
-                    ease: "easeInOut",
+                <span
+                  className="inline-block text-7xl sm:text-8xl md:text-9xl font-heading font-bold tracking-[0.08em]"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, #ffffff 0%, #a7f3d0 50%, #10b981 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
                   }}
                 >
-                  <span
-                    className="inline-block text-7xl sm:text-8xl md:text-9xl font-heading font-bold tracking-[0.08em]"
-                    style={{
-                      background:
-                        "linear-gradient(120deg, transparent 0%, #10b981 20%, #d4fce0 40%, #ffffff 50%, #d4fce0 60%, #10b981 80%, transparent 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {letter}
-                  </span>
-                </motion.span>
-
-                {/* Persistent glow after shimmer */}
-                <motion.span
-                  className="absolute inset-0 z-10"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{
-                    delay: i * LETTER_STAGGER + SHIMMER_DURATION,
-                    duration: 0.5,
-                    ease: "easeOut",
-                  }}
-                >
-                  <span
-                    className="inline-block text-7xl sm:text-8xl md:text-9xl font-heading font-bold tracking-[0.08em]"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, #ffffff 0%, #a7f3d0 50%, #10b981 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {letter}
-                  </span>
-                </motion.span>
+                  {letter}
+                </span>
               </motion.span>
-            ))}
-          </motion.div>
+            </motion.span>
+          ))}
         </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React, { memo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
@@ -146,6 +146,10 @@ export function StackBuilderForm() {
   const { teamSize, primaryUseCase, tools, loading } = useAppSelector(
     (state) => state.audit,
   );
+
+  useEffect(() => {
+    dispatch(setLoading(false));
+  }, [dispatch]);
 
   const totalCurrentSpend = tools.reduce(
     (sum, t) => sum + (Number(t.currentMonthlySpend) || 0),

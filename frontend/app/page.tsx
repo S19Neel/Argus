@@ -76,12 +76,12 @@ export default function HomePage() {
 
           {/* Hero Header */}
           <div className="text-center space-y-7 max-w-3xl mx-auto pt-2">
-            <SlideUp>
+            {/* <SlideUp>
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/8 border border-emerald-500/20 text-emerald-300 text-xs font-medium tracking-wide uppercase">
                 <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                 AI Spend & Architecture Auditor — v1.0
               </div>
-            </SlideUp>
+            </SlideUp> */}
 
             <SlideUp delay={0.1}>
               <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-[1.08]">

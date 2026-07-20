@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { AuditResultDto, AuditInputDto } from 'src/audit/dto/audit.dto';
+import { formatUseCaseLabel } from 'src/audit/rules/audit-rules';
 
 @Injectable()
 export class AiService {
@@ -43,8 +44,9 @@ export class AiService {
     );
     const optimizedSpend =
       Math.round((currentSpend - result.totalMonthlySavings) * 100) / 100;
+    const formattedUseCase = formatUseCaseLabel(input.primaryUseCase);
 
-    return `For your ${input.teamSize}-person team focused on ${input.primaryUseCase} workflows, Argus analyzed your current AI spend and identified $${result.totalMonthlySavings}/mo ($${result.totalAnnualSavings}/yr) in structural optimization opportunities. By addressing ${actionsText}, your organization can transition from your current $${currentSpend}/mo spend down to an optimized $${optimizedSpend}/mo stack while maintaining 100% model capability and developer output.`;
+    return `For your ${input.teamSize}-person team focused on ${formattedUseCase} workflows, Argus analyzed your current AI spend and identified $${result.totalMonthlySavings}/mo ($${result.totalAnnualSavings}/yr) in structural optimization opportunities. By addressing ${actionsText}, your organization can transition from your current $${currentSpend}/mo spend down to an optimized $${optimizedSpend}/mo stack while maintaining 100% model capability and developer output.`;
   }
 
   async generateSummary(
@@ -64,11 +66,12 @@ Do NOT use generic fluff, marketing jargon, or bullet points. Reference exact to
       (sum, item) => sum + item.currentSpend,
       0,
     );
+    const formattedUseCase = formatUseCaseLabel(input.primaryUseCase);
 
     const userPromptPayload = `
 Audit Context:
 - Team Size: ${input.teamSize} seats
-- Primary Use Case: ${input.primaryUseCase}
+- Primary Use Case: ${formattedUseCase}
 - Total Current Spend: $${currentSpend}/mo ($${currentSpend * 12}/yr)
 - Identified Monthly Savings: $${result.totalMonthlySavings}/mo
 - Identified Annual Savings: $${result.totalAnnualSavings}/yr

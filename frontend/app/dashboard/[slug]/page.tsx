@@ -3,7 +3,10 @@
 import { useEffect, useState, memo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { setAuditResult } from "@/store/auditSlice";
+import {
+  setAuditResult,
+  setLoading as setReduxLoading,
+} from "@/store/auditSlice";
 import { auditApi } from "@/lib/api/audit.api";
 import { ExecutiveSummaryCard } from "@/components/audit/ExecutiveSummaryCard";
 import { SavingsKpiCards } from "@/components/audit/SavingsKpiCards";
@@ -11,7 +14,12 @@ import { SpendComparisonCharts } from "@/components/audit/SpendComparisonCharts"
 import { ToolRecommendationsTable } from "@/components/audit/ToolRecommendationsTable";
 import { LeadCaptureModal } from "@/components/audit/LeadCaptureModal";
 import { ArgusLogo } from "@/components/SplashScreen";
-import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from "@/components/motion";
+import {
+  FadeIn,
+  SlideUp,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
@@ -22,7 +30,10 @@ const LoadingSkeleton = memo(function LoadingSkeleton() {
     <div className="min-h-screen bg-[#060a12] flex flex-col items-center justify-center p-8 text-center space-y-6">
       <div className="relative">
         <div className="w-14 h-14 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
-        <div className="absolute inset-0 w-14 h-14 border-2 border-transparent border-b-teal-400/40 rounded-full animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+        <div
+          className="absolute inset-0 w-14 h-14 border-2 border-transparent border-b-teal-400/40 rounded-full animate-spin"
+          style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+        />
       </div>
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-white">
@@ -130,7 +141,10 @@ export default function DashboardSlugPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/")}
+            onClick={() => {
+              dispatch(setReduxLoading(false));
+              router.push("/");
+            }}
             className="text-zinc-500 hover:text-white -ml-2 mb-1 text-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Stack Builder
@@ -163,7 +177,9 @@ export default function DashboardSlugPage() {
       <StaggerContainer className="max-w-6xl mx-auto space-y-10">
         {/* Executive AI Summary Card */}
         <StaggerItem>
-          <ExecutiveSummaryCard summaryParagraph={auditResult.summaryParagraph} />
+          <ExecutiveSummaryCard
+            summaryParagraph={auditResult.summaryParagraph}
+          />
         </StaggerItem>
 
         {/* Savings KPI Cards */}
@@ -183,7 +199,9 @@ export default function DashboardSlugPage() {
 
         {/* Itemized Recommendations Table */}
         <StaggerItem>
-          <ToolRecommendationsTable toolBreakdowns={auditResult.toolBreakdowns} />
+          <ToolRecommendationsTable
+            toolBreakdowns={auditResult.toolBreakdowns}
+          />
         </StaggerItem>
       </StaggerContainer>
 
