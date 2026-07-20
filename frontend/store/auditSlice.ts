@@ -57,6 +57,18 @@ const auditSlice = createSlice({
         state.tools[action.payload.index] = action.payload.tool;
       }
     },
+    hydrateFromStorage(
+      state,
+      action: PayloadAction<{
+        teamSize: number;
+        primaryUseCase: string;
+        tools: ToolInputDto[];
+      }>,
+    ) {
+      state.teamSize = action.payload.teamSize;
+      state.primaryUseCase = action.payload.primaryUseCase;
+      state.tools = action.payload.tools;
+    },
     removeTool(state, action: PayloadAction<number>) {
       state.tools.splice(action.payload, 1);
     },
@@ -97,6 +109,7 @@ export const {
   setPrimaryUseCase,
   addTool,
   updateTool,
+  hydrateFromStorage,
   removeTool,
   applyPreset,
   setAuditResult,

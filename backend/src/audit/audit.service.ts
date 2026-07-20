@@ -10,12 +10,14 @@ import {
 import { evaluateToolAuditBreakdown } from './rules/audit-rules';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AiService } from 'src/ai/ai.service';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuditService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiService: AiService,
+    private readonly mailService: MailService,
   ) {}
 
   performAudit(input: AuditInputDto): AuditResultDto {
@@ -145,6 +147,19 @@ export class AuditService {
       where: { id: report.id },
       data: { leadId: lead.id },
     });
+
+    this.mailService
+      .sendAuditConfirmationEmail(
+        dto.email,
+        report.shareSlug,
+        report.totalMonthlySavings,
+        report.totalAnnualSavings,
+        dto.teamSize ?? report.teamSize,
+        report.summaryParagraph ?? undefined,
+      )
+      .catch(() => {
+        // Logged internally by MailService
+      });
 
     return {
       success: true,

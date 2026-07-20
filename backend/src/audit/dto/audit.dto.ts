@@ -66,6 +66,10 @@ export class AuditInputDto {
   @Type(() => ToolItemInputDto)
   @ArrayMinSize(1)
   tools: ToolItemInputDto[];
+
+  @IsString()
+  @IsOptional()
+  _honeypot?: string;
 }
 
 export class ToolAuditBreakdownDto {
@@ -114,4 +118,8 @@ export class CaptureLeadDto {
   @Min(1)
   @IsOptional()
   teamSize?: number;
+
+  @IsString()
+  @IsOptional()
+  _honeypot?: string;
 }

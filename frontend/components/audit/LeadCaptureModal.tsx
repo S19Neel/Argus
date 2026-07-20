@@ -25,6 +25,7 @@ export function LeadCaptureModal({
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [role, setRole] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +53,7 @@ export function LeadCaptureModal({
         companyName: companyName || undefined,
         role: role || undefined,
         teamSize,
+        _honeypot: honeypot || undefined,
       });
       setSubmitted(true);
     } catch (err: any) {
@@ -139,6 +141,15 @@ export function LeadCaptureModal({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+              <input
+                type="text"
+                name="_honeypot"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                className="hidden sm:hidden opacity-0 pointer-events-none"
+                tabIndex={-1}
+                autoComplete="off"
+              />
               {error && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
                   {error}

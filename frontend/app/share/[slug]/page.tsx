@@ -6,17 +6,44 @@ import { ToolRecommendationsTable } from "@/components/audit/ToolRecommendations
 import { ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+import type { Metadata } from "next";
+
 // Server Component for native SEO and shareable metadata
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<Metadata> {
   const resolvedParams = await params;
+  let savingsText =
+    "Defensible AI spend and cloud architecture audit. Verified monthly/annual savings recommendations and executive synthesis.";
+  let title = `Argus Executive Audit Report — #${resolvedParams.slug}`;
+
+  try {
+    const report = await auditApi.getAuditBySlug(resolvedParams.slug);
+    if (report) {
+      title = `Argus Executive Audit Report (${report.teamSize} Seats) — $${report.totalMonthlySavings}/mo Identified Savings`;
+      savingsText = `Verified analysis across ${report.items?.length || 0} AI tools. Annualized bottom-line impact of $${report.totalAnnualSavings}/yr. Executive synthesis and tier recommendations inside.`;
+    }
+  } catch {
+    // Fallback if API offline or report not found during metadata generation
+  }
+
   return {
-    title: `Argus Executive Audit Report — #${resolvedParams.slug}`,
-    description:
-      "Defensible AI spend and cloud architecture audit. Verified monthly/annual savings recommendations and executive synthesis.",
+    title,
+    description: savingsText,
+    openGraph: {
+      title,
+      description: savingsText,
+      url: process.env.NEXT_PUBLIC_SITE_URL + `/share/${resolvedParams.slug}`,
+      siteName: "Argus AI Architecture Auditor by TechVruk",
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: savingsText,
+    },
   };
 }
 
