@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { AuditService } from './audit.service';
 import {
   AuditInputDto,
@@ -14,6 +21,9 @@ export class AuditController {
   async analyze(
     @Body() input: AuditInputDto,
   ): Promise<PersistedAuditResultDto> {
+    if (input._honeypot && input._honeypot.trim() !== '') {
+      throw new BadRequestException('Spam detected');
+    }
     return this.auditService.analyzeAndSaveAudit(input);
   }
 
@@ -21,6 +31,9 @@ export class AuditController {
   async analyzeEndpoint(
     @Body() input: AuditInputDto,
   ): Promise<PersistedAuditResultDto> {
+    if (input._honeypot && input._honeypot.trim() !== '') {
+      throw new BadRequestException('Spam detected');
+    }
     return this.auditService.analyzeAndSaveAudit(input);
   }
 
@@ -31,6 +44,9 @@ export class AuditController {
 
   @Post('lead')
   async captureLead(@Body() dto: CaptureLeadDto) {
+    if (dto._honeypot && dto._honeypot.trim() !== '') {
+      throw new BadRequestException('Spam detected');
+    }
     return this.auditService.captureLeadForAudit(dto);
   }
 }

@@ -28,6 +28,7 @@ export interface AuditInputDto {
   teamSize: number;
   primaryUseCase: PrimaryUseCase | string;
   tools: ToolInputDto[];
+  _honeypot?: string;
 }
 
 export interface ToolAuditBreakdownDto {
@@ -87,4 +88,5 @@ export interface CaptureLeadDto {
   companyName?: string;
   role?: string;
   teamSize?: number;
+  _honeypot?: string;
 }

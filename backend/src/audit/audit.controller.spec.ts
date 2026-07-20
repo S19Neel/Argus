@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BadRequestException } from '@nestjs/common';
 import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
 import { AuditInputDto } from './dto/audit.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AiService } from 'src/ai/ai.service';
+import { MailService } from 'src/mail/mail.service';
 
 describe('AuditController', () => {
   let controller: AuditController;
@@ -31,6 +33,12 @@ describe('AuditController', () => {
           provide: AiService,
           useValue: {
             generateSummary: jest.fn().mockResolvedValue('Mock AI Summary'),
+          },
+        },
+        {
+          provide: MailService,
+          useValue: {
+            sendAuditConfirmationEmail: jest.fn().mockResolvedValue(true),
           },
         },
       ],
@@ -75,5 +83,25 @@ describe('AuditController', () => {
     expect(spy).toHaveBeenCalledWith(sampleInput);
     expect(result.shareSlug).toBe('slug-abc');
     expect(result.totalMonthlySavings).toBe(40);
+  });
+
+  it('should throw BadRequestException immediately when _honeypot field is populated (Spam check)', async () => {
+    const spamInput: AuditInputDto = {
+      teamSize: 5,
+      primaryUseCase: 'coding',
+      tools: [
+        {
+          toolName: 'Cursor',
+          plan: 'Business',
+          seats: 5,
+          currentMonthlySpend: 200,
+        },
+      ],
+      _honeypot: 'http://spam-bot.example.com',
+    };
+
+    await expect(controller.analyze(spamInput)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });

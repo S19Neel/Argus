@@ -3,6 +3,7 @@ import { AuditService } from './audit.service';
 import { AuditInputDto } from './dto/audit.dto';
 import { AiService } from 'src/ai/ai.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { MailService } from 'src/mail/mail.service';
 
 const mockPrismaService = {
   auditReport: {
@@ -21,6 +22,10 @@ const mockAiService = {
     .mockResolvedValue('Mock AI Executive Summary for testing'),
 };
 
+const mockMailService = {
+  sendAuditConfirmationEmail: jest.fn().mockResolvedValue(true),
+};
+
 describe('AuditService - Defensible AI Spend Audit Engine', () => {
   let service: AuditService;
 
@@ -35,6 +40,10 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
         {
           provide: AiService,
           useValue: mockAiService,
+        },
+        {
+          provide: MailService,
+          useValue: mockMailService,
         },
       ],
     }).compile();
@@ -280,5 +289,43 @@ describe('AuditService - Defensible AI Spend Audit Engine', () => {
     expect(publicReport).toBeDefined();
     expect(publicReport).not.toHaveProperty('leadId');
     expect(publicReport.shareSlug).toBe('mock-slug-123');
+  });
+
+  it('Test 10: should capture lead and trigger sendAuditConfirmationEmail asynchronously', async () => {
+    mockPrismaService.auditReport.findUnique.mockResolvedValue({
+      id: 'report-id-123',
+      shareSlug: 'slug-abc-999',
+      teamSize: 10,
+      totalMonthlySavings: 600,
+      totalAnnualSavings: 7200,
+      summaryParagraph: 'Mock AI Summary',
+    });
+
+    mockPrismaService.lead.upsert.mockResolvedValue({
+      id: 'lead-id-456',
+      email: 'founder@techvruk.com',
+    });
+
+    mockPrismaService.auditReport.update.mockResolvedValue({
+      id: 'report-id-123',
+    });
+
+    const res = await service.captureLeadForAudit({
+      shareSlug: 'slug-abc-999',
+      email: 'founder@techvruk.com',
+      companyName: 'TechVruk',
+      role: 'Founder',
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.leadId).toBe('lead-id-456');
+    expect(mockMailService.sendAuditConfirmationEmail).toHaveBeenCalledWith(
+      'founder@techvruk.com',
+      'slug-abc-999',
+      600,
+      7200,
+      10,
+      'Mock AI Summary',
+    );
   });
 });
