@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
   addTool,
-  applyPreset,
   removeTool,
   resetAuditState,
   setAuditResult,
@@ -14,7 +13,6 @@ import {
   setTeamSize,
   updateTool,
 } from "@/store/auditSlice";
-import { INSTANT_PRESETS } from "@/constants/presets.constants";
 import { SUPPORTED_TOOLS, USE_CASES } from "@/constants/pricing.constants";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { auditApi } from "@/lib/api/audit.api";
@@ -23,24 +21,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FadeIn,
-  SlideUp,
-  StaggerContainer,
-  StaggerItem,
-} from "@/components/motion";
+import { SlideUp } from "@/components/motion";
 import { toast } from "sonner";
-import {
-  Plus,
-  Trash2,
-  Sparkles,
-  Zap,
-  Building2,
-  TrendingUp,
-  RefreshCw,
-  ArrowRight,
-  ShieldCheck,
-} from "lucide-react";
+import { Plus, Trash2, Sparkles, RefreshCw, ShieldCheck } from "lucide-react";
 
 const ToolRow = memo(function ToolRow({
   tool,
@@ -164,8 +147,6 @@ export function StackBuilderForm() {
     (state) => state.audit,
   );
 
-  console.log("primaryUseCase", primaryUseCase);
-
   const totalCurrentSpend = tools.reduce(
     (sum, t) => sum + (Number(t.currentMonthlySpend) || 0),
     0,
@@ -268,80 +249,8 @@ export function StackBuilderForm() {
     }
   };
 
-  // const getPresetIcon = (id: string) => {
-  //   switch (id) {
-  //     case "startup-coding":
-  //       return <Zap className="w-4 h-4 text-emerald-400" />;
-  //     case "design-writing":
-  //       return <TrendingUp className="w-4 h-4 text-teal-400" />;
-  //     case "enterprise-copilot":
-  //       return <Building2 className="w-4 h-4 text-violet-400" />;
-  //     default:
-  //       return <Sparkles className="w-4 h-4 text-blue-400" />;
-  //   }
-  // };
-
   return (
     <div className="space-y-8 w-full max-w-5xl mx-auto">
-      {/* Instant Test Presets Bar */}
-      {/* <FadeIn>
-        <Card className="glass-card border-white/6 shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-500/8 via-teal-500/8 to-violet-500/8 p-6 border-b border-white/6">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
-              <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-400">
-                Instant Evaluation Presets
-              </h3>
-            </div>
-            <p className="text-xs text-zinc-500">
-              Select an instant architectural configuration below to test
-              defensible rule triggers and live executive summaries immediately.
-            </p>
-          </div>
-          <CardContent className="p-6">
-            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {INSTANT_PRESETS.map((preset) => (
-                <StaggerItem key={preset.id}>
-                  <motion.button
-                    type="button"
-                    onClick={() => {
-                      dispatch(applyPreset(preset.id));
-                      toast.success(`"${preset.title}" preset applied.`);
-                    }}
-                    whileHover={{ y: -2, scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="group text-left w-full p-4 rounded-xl glass-card glow-hover transition-all duration-300 flex flex-col justify-between space-y-3"
-                  >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="p-2 rounded-lg bg-zinc-800/60 group-hover:bg-emerald-500/10 transition-colors">
-                          {getPresetIcon(preset.id)}
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] border-white/10 text-zinc-400 group-hover:border-emerald-500/30 group-hover:text-emerald-300 transition-colors"
-                        >
-                          {preset.badge}
-                        </Badge>
-                      </div>
-                      <h4 className="text-sm font-semibold text-zinc-200 group-hover:text-white transition-colors">
-                        {preset.title}
-                      </h4>
-                      <p className="text-xs text-zinc-500 line-clamp-2">
-                        {preset.subtitle}
-                      </p>
-                    </div>
-                    <div className="text-[11px] font-medium text-emerald-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                      Apply Configuration <ArrowRight className="w-3 h-3" />
-                    </div>
-                  </motion.button>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </CardContent>
-        </Card>
-      </FadeIn> */}
-
       {/* Main Stack Builder Form */}
       <SlideUp delay={0.1}>
         <Card className="glass-card border-white/6 shadow-2xl">
