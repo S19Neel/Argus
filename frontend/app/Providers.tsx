@@ -5,6 +5,8 @@ import { Provider } from "react-redux";
 import { store, useAppDispatch, useAppSelector } from "@/store/store";
 import { hydrateFromStorage } from "@/store/auditSlice";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LenisProvider } from "@/components/LenisProvider";
+import { Toaster } from "sonner";
 
 function LocalStorageSync() {
   const dispatch = useAppDispatch();
@@ -48,7 +50,26 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <LocalStorageSync />
-      <TooltipProvider>{children}</TooltipProvider>
+      <TooltipProvider>
+        <LenisProvider>
+          {children}
+          <Toaster
+            theme="dark"
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: "rgba(14, 18, 28, 0.95)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                color: "#e4e4e7",
+                backdropFilter: "blur(16px)",
+                fontFamily: "var(--font-sans), system-ui, sans-serif",
+              },
+            }}
+            closeButton
+            richColors
+          />
+        </LenisProvider>
+      </TooltipProvider>
     </Provider>
   );
 }

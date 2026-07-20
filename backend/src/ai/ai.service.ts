@@ -97,8 +97,8 @@ Synthesize these exact findings into your single executive paragraph now.`;
 
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(
-          () => reject(new Error('OpenAI timeout after 3500ms')),
-          3500,
+          () => reject(new Error('OpenAI timeout after 2800ms')),
+          2800,
         ),
       );
 

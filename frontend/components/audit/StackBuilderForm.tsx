@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { memo } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import {
@@ -9,7 +9,6 @@ import {
   removeTool,
   resetAuditState,
   setAuditResult,
-  setError,
   setLoading,
   setPrimaryUseCase,
   setTeamSize,
@@ -23,6 +22,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FadeIn,
+  SlideUp,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/motion";
+import { toast } from "sonner";
 import {
   Plus,
   Trash2,
@@ -35,12 +42,129 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+const ToolRow = memo(function ToolRow({
+  tool,
+  index,
+  onToolChange,
+  onRemove,
+}: {
+  tool: any;
+  index: number;
+  onToolChange: (index: number, field: string, value: any) => void;
+  onRemove: (index: number) => void;
+}) {
+  const toolConfig = SUPPORTED_TOOLS.find((t) => t.toolName === tool.toolName);
+  const availableTiers = toolConfig
+    ? Object.keys(toolConfig.tiers)
+    : ["Free", "Pro", "Team", "Enterprise"];
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 16, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -12, scale: 0.95 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 rounded-xl glass-card glow-hover transition-all"
+    >
+      {/* Tool Selector */}
+      <div className="md:col-span-3 space-y-1">
+        <label className="text-[11px] font-medium text-zinc-500 block tracking-wide">
+          AI Tool Name
+        </label>
+        <select
+          value={tool.toolName}
+          onChange={(e) => onToolChange(index, "toolName", e.target.value)}
+          className="w-full bg-zinc-900/80 border border-white/8 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+        >
+          {SUPPORTED_TOOLS.map((t) => (
+            <option key={t.toolName} value={t.toolName}>
+              {t.toolName}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tier Selector */}
+      <div className="md:col-span-3 space-y-1">
+        <label className="text-[11px] font-medium text-zinc-500 block tracking-wide">
+          Current Tier / Plan
+        </label>
+        <select
+          value={tool.plan}
+          onChange={(e) => onToolChange(index, "plan", e.target.value)}
+          className="w-full bg-zinc-900/80 border border-white/8 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+        >
+          {availableTiers.map((tier) => (
+            <option key={tier} value={tier}>
+              {tier}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Seats */}
+      <div className="md:col-span-2 space-y-1">
+        <label className="text-[11px] font-medium text-zinc-500 block tracking-wide">
+          Seats / Users
+        </label>
+        <input
+          type="number"
+          min={1}
+          value={tool.seats}
+          onChange={(e) => onToolChange(index, "seats", Number(e.target.value))}
+          className="w-full bg-zinc-900/80 border border-white/8 rounded-lg px-3 py-2 text-sm font-mono text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+        />
+      </div>
+
+      {/* Monthly Spend */}
+      <div className="md:col-span-3 space-y-1">
+        <label className="text-[11px] font-medium text-zinc-500 block tracking-wide">
+          Monthly Spend ($ USD)
+        </label>
+        <div className="relative">
+          <span className="absolute left-3 top-2 text-sm font-mono text-zinc-500">
+            $
+          </span>
+          <input
+            type="number"
+            min={0}
+            step="any"
+            value={tool.currentMonthlySpend}
+            onChange={(e) =>
+              onToolChange(index, "currentMonthlySpend", Number(e.target.value))
+            }
+            className="w-full bg-zinc-900/80 border border-white/8 rounded-lg pl-7 pr-3 py-2 text-sm font-mono text-emerald-400 font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Remove Button */}
+      <div className="md:col-span-1 flex justify-end pt-5 md:pt-0">
+        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => onRemove(index)}
+            className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+});
+
 export function StackBuilderForm() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { teamSize, primaryUseCase, tools, loading, error } = useAppSelector(
+  const { teamSize, primaryUseCase, tools, loading } = useAppSelector(
     (state) => state.audit,
   );
+
+  console.log("primaryUseCase", primaryUseCase);
 
   const totalCurrentSpend = tools.reduce(
     (sum, t) => sum + (Number(t.currentMonthlySpend) || 0),
@@ -103,12 +227,15 @@ export function StackBuilderForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tools.length === 0) {
-      dispatch(setError("Please add at least one tool to evaluate."));
+      toast.error("Please add at least one tool to evaluate.", {
+        description:
+          "Use the 'Add AI Tool' button or select an instant preset above.",
+      });
       return;
     }
 
     dispatch(setLoading(true));
-    dispatch(setError(null));
+    let navigateInitiated = false;
 
     try {
       const payload = {
@@ -124,362 +251,301 @@ export function StackBuilderForm() {
 
       const result = await auditApi.analyzeStack(payload);
       dispatch(setAuditResult(result));
+      toast.success("Audit complete — redirecting to dashboard.", {
+        description: `Analyzed ${tools.length} tools for ${teamSize} seats.`,
+      });
+      navigateInitiated = true;
       router.push(`/dashboard/${result.shareSlug}`);
     } catch (err: any) {
-      dispatch(setError(err.message || "Failed to analyze stack."));
+      toast.error("Failed to analyze stack", {
+        description:
+          err.message || "An unexpected error occurred. Please try again.",
+      });
     } finally {
-      dispatch(setLoading(false));
+      if (!navigateInitiated) {
+        dispatch(setLoading(false));
+      }
     }
   };
 
-  const getPresetIcon = (id: string) => {
-    switch (id) {
-      case "startup-coding":
-        return <Zap className="w-4 h-4 text-emerald-400" />;
-      case "design-writing":
-        return <TrendingUp className="w-4 h-4 text-teal-400" />;
-      case "enterprise-copilot":
-        return <Building2 className="w-4 h-4 text-violet-400" />;
-      default:
-        return <Sparkles className="w-4 h-4 text-blue-400" />;
-    }
-  };
+  // const getPresetIcon = (id: string) => {
+  //   switch (id) {
+  //     case "startup-coding":
+  //       return <Zap className="w-4 h-4 text-emerald-400" />;
+  //     case "design-writing":
+  //       return <TrendingUp className="w-4 h-4 text-teal-400" />;
+  //     case "enterprise-copilot":
+  //       return <Building2 className="w-4 h-4 text-violet-400" />;
+  //     default:
+  //       return <Sparkles className="w-4 h-4 text-blue-400" />;
+  //   }
+  // };
 
   return (
     <div className="space-y-8 w-full max-w-5xl mx-auto">
       {/* Instant Test Presets Bar */}
-      <Card className="bg-zinc-900/60 border-zinc-800 backdrop-blur-xl shadow-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-violet-500/10 p-6 border-b border-zinc-800/80">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-emerald-400 animate-pulse" />
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-emerald-400">
-              Instant Evaluation Presets
-            </h3>
+      {/* <FadeIn>
+        <Card className="glass-card border-white/6 shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-500/8 via-teal-500/8 to-violet-500/8 p-6 border-b border-white/6">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-400">
+                Instant Evaluation Presets
+              </h3>
+            </div>
+            <p className="text-xs text-zinc-500">
+              Select an instant architectural configuration below to test
+              defensible rule triggers and live executive summaries immediately.
+            </p>
           </div>
-          <p className="text-xs text-zinc-400">
-            Select an instant architectural configuration below to test
-            defensible rule triggers and live executive summaries immediately.
-          </p>
-        </div>
-        <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {INSTANT_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => dispatch(applyPreset(preset.id))}
-              className="group text-left p-4 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:border-emerald-500/50 hover:bg-zinc-800/60 transition-all duration-300 flex flex-col justify-between space-y-3"
-            >
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 rounded-lg bg-zinc-800/80 group-hover:bg-emerald-500/10 transition-colors">
-                    {getPresetIcon(preset.id)}
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] border-zinc-700 text-zinc-300 group-hover:border-emerald-500/40 group-hover:text-emerald-300"
+          <CardContent className="p-6">
+            <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {INSTANT_PRESETS.map((preset) => (
+                <StaggerItem key={preset.id}>
+                  <motion.button
+                    type="button"
+                    onClick={() => {
+                      dispatch(applyPreset(preset.id));
+                      toast.success(`"${preset.title}" preset applied.`);
+                    }}
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group text-left w-full p-4 rounded-xl glass-card glow-hover transition-all duration-300 flex flex-col justify-between space-y-3"
                   >
-                    {preset.badge}
-                  </Badge>
-                </div>
-                <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-white">
-                  {preset.title}
-                </h4>
-                <p className="text-xs text-zinc-400 line-clamp-2">
-                  {preset.subtitle}
-                </p>
-              </div>
-              <div className="text-[11px] font-medium text-emerald-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                Apply Configuration <ArrowRight className="w-3 h-3" />
-              </div>
-            </button>
-          ))}
-        </CardContent>
-      </Card>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="p-2 rounded-lg bg-zinc-800/60 group-hover:bg-emerald-500/10 transition-colors">
+                          {getPresetIcon(preset.id)}
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] border-white/10 text-zinc-400 group-hover:border-emerald-500/30 group-hover:text-emerald-300 transition-colors"
+                        >
+                          {preset.badge}
+                        </Badge>
+                      </div>
+                      <h4 className="text-sm font-semibold text-zinc-200 group-hover:text-white transition-colors">
+                        {preset.title}
+                      </h4>
+                      <p className="text-xs text-zinc-500 line-clamp-2">
+                        {preset.subtitle}
+                      </p>
+                    </div>
+                    <div className="text-[11px] font-medium text-emerald-400 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                      Apply Configuration <ArrowRight className="w-3 h-3" />
+                    </div>
+                  </motion.button>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </CardContent>
+        </Card>
+      </FadeIn> */}
 
       {/* Main Stack Builder Form */}
-      <Card className="bg-zinc-900/60 border-zinc-800 backdrop-blur-xl shadow-2xl">
-        <CardHeader className="border-b border-zinc-800/80 pb-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-6 h-6 text-emerald-400" />
-                Configure AI Stack & Parameters
-              </CardTitle>
-              <p className="text-sm text-zinc-400 mt-1">
-                Enter your organization&apos;s active AI tools, tiers, and
-                monthly licensing spend below.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => dispatch(resetAuditState())}
-              className="border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500"
-            >
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Reset Form
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 space-y-8">
-          {error && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Core Organization Parameters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 rounded-2xl bg-zinc-950/40 border border-zinc-800/80">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-sm font-semibold text-zinc-200">
-                  Total Team Size (Seats)
-                </label>
-                <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 font-mono text-sm">
-                  {teamSize} {teamSize === 1 ? "User" : "Users"}
-                </Badge>
-              </div>
-              <Slider
-                value={[teamSize]}
-                min={1}
-                max={200}
-                step={1}
-                onValueChange={(val: any) =>
-                  dispatch(
-                    setTeamSize(
-                      Array.isArray(val)
-                        ? val[0]
-                        : typeof val === "number"
-                          ? val
-                          : 10,
-                    ),
-                  )
-                }
-                className="py-2"
-              />
-              <p className="text-xs text-zinc-500">
-                Adjust seat volume to evaluate bulk enterprise tiers vs retail
-                license efficiency.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-sm font-semibold text-zinc-200 block">
-                Primary Organization Workflow
-              </label>
-              <select
-                value={primaryUseCase}
-                onChange={(e) => dispatch(setPrimaryUseCase(e.target.value))}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-              >
-                {USE_CASES.map((uc) => (
-                  <option key={uc.id} value={uc.id}>
-                    {uc.label}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-zinc-500">
-                Argus uses your workflow to determine domain-specific tool
-                alternatives and feature parity requirements.
-              </p>
-            </div>
-          </div>
-
-          {/* Dynamic Tools List */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-zinc-200">
-                Active AI Subscriptions & Tool Stack
-              </h3>
-              <Button
-                type="button"
-                onClick={handleAddTool}
-                size="sm"
-                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700"
-              >
-                <Plus className="w-4 h-4 mr-1.5 text-emerald-400" /> Add AI Tool
-              </Button>
-            </div>
-
-            {tools.length === 0 ? (
-              <div className="p-12 rounded-2xl border border-dashed border-zinc-800 text-center space-y-3">
-                <p className="text-sm text-zinc-400">
-                  No active tools configured in stack.
+      <SlideUp delay={0.1}>
+        <Card className="glass-card border-white/6 shadow-2xl">
+          <CardHeader className="border-b border-white/6 pb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  Configure AI Stack & Parameters
+                </CardTitle>
+                <p className="text-sm text-zinc-500 mt-1">
+                  Enter your organization&apos;s active AI tools, tiers, and
+                  monthly licensing spend below.
                 </p>
+              </div>
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    dispatch(resetAuditState());
+                    toast("Form reset to defaults.");
+                  }}
+                  className="border-white/10 text-zinc-400 hover:text-white hover:border-white/20"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Reset Form
+                </Button>
+              </motion.div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-8">
+            {/* Core Organization Parameters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 rounded-2xl bg-zinc-950/30 border border-white/5">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-semibold text-zinc-300">
+                    Total Team Size (Seats)
+                  </label>
+                  <Badge className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-3 py-1 font-mono text-sm">
+                    {teamSize} {teamSize === 1 ? "User" : "Users"}
+                  </Badge>
+                </div>
+                <Slider
+                  value={[teamSize]}
+                  min={1}
+                  max={200}
+                  step={1}
+                  onValueChange={(val: any) =>
+                    dispatch(
+                      setTeamSize(
+                        Array.isArray(val)
+                          ? val[0]
+                          : typeof val === "number"
+                            ? val
+                            : 10,
+                      ),
+                    )
+                  }
+                  className="py-2"
+                />
+                <p className="text-xs text-zinc-600">
+                  Adjust seat volume to evaluate bulk enterprise tiers vs retail
+                  license efficiency.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-zinc-300 block">
+                  Primary Organization Workflow
+                </label>
+                <select
+                  value={primaryUseCase}
+                  onChange={(e) => dispatch(setPrimaryUseCase(e.target.value))}
+                  className="w-full bg-zinc-900/80 border border-white/8 rounded-xl px-4 py-2.5 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/40 transition-all"
+                >
+                  {USE_CASES.map((uc) => (
+                    <option key={uc.id} value={uc.id}>
+                      {uc.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-zinc-600">
+                  Argus uses your workflow to determine domain-specific tool
+                  alternatives and feature parity requirements.
+                </p>
+              </div>
+            </div>
+
+            {/* Dynamic Tools List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-zinc-300">
+                  Active AI Subscriptions & Tool Stack
+                </h3>
+                <motion.div
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <Button
+                    type="button"
+                    onClick={handleAddTool}
+                    size="sm"
+                    className="bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-200 border border-white/8"
+                  >
+                    <Plus className="w-4 h-4 mr-1.5 text-emerald-400" /> Add AI
+                    Tool
+                  </Button>
+                </motion.div>
+              </div>
+
+              {tools.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="p-12 rounded-2xl border border-dashed border-white/8 text-center space-y-3"
+                >
+                  <p className="text-sm text-zinc-500">
+                    No active tools configured in stack.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={handleAddTool}
+                    size="sm"
+                    variant="outline"
+                    className="border-white/10"
+                  >
+                    Add Your First Tool
+                  </Button>
+                </motion.div>
+              ) : (
+                <div className="space-y-3">
+                  <AnimatePresence mode="popLayout">
+                    {tools.map((tool, index) => (
+                      <ToolRow
+                        key={`${tool.toolName}-${index}`}
+                        tool={tool}
+                        index={index}
+                        onToolChange={handleToolChange}
+                        onRemove={(i) => dispatch(removeTool(i))}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            {/* Live Cost Summary Footer & Submit */}
+            <div className="pt-6 border-t border-white/6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="p-4 rounded-xl glass-card flex items-center gap-6">
+                <div>
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-[0.15em] block">
+                    Live Monthly Spend
+                  </span>
+                  <span className="text-2xl font-bold font-mono text-white">
+                    {formatCurrency(totalCurrentSpend)}
+                    <span className="text-xs text-zinc-600 font-normal">
+                      /mo
+                    </span>
+                  </span>
+                </div>
+                <div className="h-8 w-px bg-white/8" />
+                <div>
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-[0.15em] block">
+                    Annualized Run-rate
+                  </span>
+                  <span className="text-xl font-semibold font-mono text-zinc-400">
+                    {formatCurrency(totalCurrentSpend * 12)}
+                    <span className="text-xs text-zinc-600 font-normal">
+                      /yr
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 <Button
                   type="button"
-                  onClick={handleAddTool}
-                  size="sm"
-                  variant="outline"
-                  className="border-zinc-700"
+                  onClick={handleSubmit}
+                  disabled={loading || tools.length === 0}
+                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-6 px-8 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.35)] transition-all duration-400 text-base flex items-center gap-2"
                 >
-                  Add Your First Tool
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Running AI Architectural Audit...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Run AI Spend Audit & Optimize
+                    </>
+                  )}
                 </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {tools.map((tool, index) => {
-                  const toolConfig = SUPPORTED_TOOLS.find(
-                    (t) => t.toolName === tool.toolName,
-                  );
-                  const availableTiers = toolConfig
-                    ? Object.keys(toolConfig.tiers)
-                    : ["Free", "Pro", "Team", "Enterprise"];
-
-                  return (
-                    <div
-                      key={index}
-                      className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700 transition-all"
-                    >
-                      {/* Tool Selector */}
-                      <div className="md:col-span-3 space-y-1">
-                        <label className="text-[11px] font-medium text-zinc-400 block">
-                          AI Tool Name
-                        </label>
-                        <select
-                          value={tool.toolName}
-                          onChange={(e) =>
-                            handleToolChange(index, "toolName", e.target.value)
-                          }
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
-                          {SUPPORTED_TOOLS.map((t) => (
-                            <option key={t.toolName} value={t.toolName}>
-                              {t.toolName}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Tier Selector */}
-                      <div className="md:col-span-3 space-y-1">
-                        <label className="text-[11px] font-medium text-zinc-400 block">
-                          Current Tier / Plan
-                        </label>
-                        <select
-                          value={tool.plan}
-                          onChange={(e) =>
-                            handleToolChange(index, "plan", e.target.value)
-                          }
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        >
-                          {availableTiers.map((tier) => (
-                            <option key={tier} value={tier}>
-                              {tier}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Seats */}
-                      <div className="md:col-span-2 space-y-1">
-                        <label className="text-[11px] font-medium text-zinc-400 block">
-                          Seats / Users
-                        </label>
-                        <input
-                          type="number"
-                          min={1}
-                          value={tool.seats}
-                          onChange={(e) =>
-                            handleToolChange(
-                              index,
-                              "seats",
-                              Number(e.target.value),
-                            )
-                          }
-                          className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-mono text-zinc-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                        />
-                      </div>
-
-                      {/* Monthly Spend */}
-                      <div className="md:col-span-3 space-y-1">
-                        <label className="text-[11px] font-medium text-zinc-400 block">
-                          Monthly Spend ($ USD)
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-sm font-mono text-zinc-500">
-                            $
-                          </span>
-                          <input
-                            type="number"
-                            min={0}
-                            step="any"
-                            value={tool.currentMonthlySpend}
-                            onChange={(e) =>
-                              handleToolChange(
-                                index,
-                                "currentMonthlySpend",
-                                Number(e.target.value),
-                              )
-                            }
-                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg pl-7 pr-3 py-2 text-sm font-mono text-emerald-400 font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Remove Button */}
-                      <div className="md:col-span-1 flex justify-end pt-5 md:pt-0">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => dispatch(removeTool(index))}
-                          className="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Live Cost Summary Footer & Submit */}
-          <div className="pt-6 border-t border-zinc-800/80 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center gap-6">
-              <div>
-                <span className="text-xs text-zinc-400 uppercase tracking-wider block">
-                  Live Monthly Spend
-                </span>
-                <span className="text-2xl font-bold font-mono text-white">
-                  {formatCurrency(totalCurrentSpend)}
-                  <span className="text-xs text-zinc-500 font-normal">/mo</span>
-                </span>
-              </div>
-              <div className="h-8 w-px bg-zinc-800" />
-              <div>
-                <span className="text-xs text-zinc-400 uppercase tracking-wider block">
-                  Annualized Run-rate
-                </span>
-                <span className="text-xl font-semibold font-mono text-zinc-300">
-                  {formatCurrency(totalCurrentSpend * 12)}
-                  <span className="text-xs text-zinc-500 font-normal">/yr</span>
-                </span>
-              </div>
+              </motion.div>
             </div>
-
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading || tools.length === 0}
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-6 px-8 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all duration-300 text-base flex items-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Running AI Architectural Audit...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Run AI Spend Audit & Optimize
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </SlideUp>
     </div>
   );
 }

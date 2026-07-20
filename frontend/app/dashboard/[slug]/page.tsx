@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { setAuditResult } from "@/store/auditSlice";
@@ -10,8 +10,32 @@ import { SavingsKpiCards } from "@/components/audit/SavingsKpiCards";
 import { SpendComparisonCharts } from "@/components/audit/SpendComparisonCharts";
 import { ToolRecommendationsTable } from "@/components/audit/ToolRecommendationsTable";
 import { LeadCaptureModal } from "@/components/audit/LeadCaptureModal";
+import { ArgusLogo } from "@/components/SplashScreen";
+import { FadeIn, SlideUp, StaggerContainer, StaggerItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ShieldCheck, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
+
+/* Premium loading skeleton */
+const LoadingSkeleton = memo(function LoadingSkeleton() {
+  return (
+    <div className="min-h-screen bg-[#060a12] flex flex-col items-center justify-center p-8 text-center space-y-6">
+      <div className="relative">
+        <div className="w-14 h-14 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+        <div className="absolute inset-0 w-14 h-14 border-2 border-transparent border-b-teal-400/40 rounded-full animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold text-white">
+          Synthesizing Architectural Findings...
+        </h2>
+        <p className="text-sm text-zinc-500 max-w-md">
+          Verifying seat overkill rules, calculating annual run-rate discounts,
+          and generating AI executive analysis.
+        </p>
+      </div>
+    </div>
+  );
+});
 
 export default function DashboardSlugPage() {
   const params = useParams();
@@ -53,7 +77,9 @@ export default function DashboardSlugPage() {
             }),
           );
         } catch (err: any) {
-          setError(err.message || "Could not load audit report.");
+          const msg = err.message || "Could not load audit report.";
+          setError(msg);
+          toast.error("Failed to load audit report", { description: msg });
         } finally {
           setLoading(false);
         }
@@ -66,30 +92,19 @@ export default function DashboardSlugPage() {
   }, [slug, auditResult, dispatch]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#090d16] flex flex-col items-center justify-center p-8 text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto" />
-        <h2 className="text-xl font-bold text-white">
-          Synthesizing Architectural Findings...
-        </h2>
-        <p className="text-sm text-zinc-400 max-w-md">
-          Verifying seat overkill rules, calculating annual run-rate discounts,
-          and generating AI executive analysis.
-        </p>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (error || !auditResult) {
     return (
-      <div className="min-h-screen bg-[#090d16] flex flex-col items-center justify-center p-8 text-center space-y-6">
-        <div className="p-4 rounded-full bg-red-500/10 text-red-400 border border-red-500/30">
-          <AlertCircle className="w-10 h-10" />
+      <div className="min-h-screen bg-[#060a12] flex flex-col items-center justify-center p-8 text-center space-y-6">
+        <div className="p-5 rounded-full glass-card text-red-400">
+          <ShieldCheck className="w-10 h-10" />
         </div>
         <h2 className="text-2xl font-bold text-white">
           Audit Report Not Found
         </h2>
-        <p className="text-sm text-zinc-400 max-w-md">
+        <p className="text-sm text-zinc-500 max-w-md">
           {error || `No report found with share slug: ${slug}`}
         </p>
         <Button
@@ -108,28 +123,29 @@ export default function DashboardSlugPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-[#090d16] to-black py-10 px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-[#060a12] to-black py-10 px-4 sm:px-6 lg:px-8 space-y-10">
       {/* Header Bar */}
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-800/80">
+      <FadeIn className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/6">
         <div className="space-y-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push("/")}
-            className="text-zinc-400 hover:text-white -ml-2 mb-1 text-xs"
+            className="text-zinc-500 hover:text-white -ml-2 mb-1 text-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Stack Builder
           </Button>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-              <ShieldCheck className="w-7 h-7 text-emerald-400" />
-              Executive Audit Analysis Report
+          <div className="flex items-center gap-4">
+            <ArgusLogo />
+            <div className="h-6 w-px bg-white/10" />
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              Executive Audit Report
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-mono">
+            <span className="px-2.5 py-0.5 rounded-full glass-card text-zinc-400 text-xs font-mono">
               /share/{auditResult.shareSlug}
             </span>
           </div>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-zinc-500">
             Defensible recommendations prepared for your organization by the
             Argus Engine.
           </p>
@@ -141,32 +157,42 @@ export default function DashboardSlugPage() {
             teamSize={10} // default fallback if needed
           />
         </div>
-      </div>
+      </FadeIn>
 
       {/* Main Content Sections */}
-      <div className="max-w-6xl mx-auto space-y-10">
+      <StaggerContainer className="max-w-6xl mx-auto space-y-10">
         {/* Executive AI Summary Card */}
-        <ExecutiveSummaryCard summaryParagraph={auditResult.summaryParagraph} />
+        <StaggerItem>
+          <ExecutiveSummaryCard summaryParagraph={auditResult.summaryParagraph} />
+        </StaggerItem>
 
         {/* Savings KPI Cards */}
-        <SavingsKpiCards
-          totalMonthlySavings={auditResult.totalMonthlySavings}
-          totalAnnualSavings={auditResult.totalAnnualSavings}
-          overallStatus={auditResult.overallStatus}
-          totalCurrentMonthlySpend={totalCurrentMonthlySpend}
-        />
+        <StaggerItem>
+          <SavingsKpiCards
+            totalMonthlySavings={auditResult.totalMonthlySavings}
+            totalAnnualSavings={auditResult.totalAnnualSavings}
+            overallStatus={auditResult.overallStatus}
+            totalCurrentMonthlySpend={totalCurrentMonthlySpend}
+          />
+        </StaggerItem>
 
         {/* Spend Comparison Charts */}
-        <SpendComparisonCharts toolBreakdowns={auditResult.toolBreakdowns} />
+        <StaggerItem>
+          <SpendComparisonCharts toolBreakdowns={auditResult.toolBreakdowns} />
+        </StaggerItem>
 
         {/* Itemized Recommendations Table */}
-        <ToolRecommendationsTable toolBreakdowns={auditResult.toolBreakdowns} />
-      </div>
+        <StaggerItem>
+          <ToolRecommendationsTable toolBreakdowns={auditResult.toolBreakdowns} />
+        </StaggerItem>
+      </StaggerContainer>
 
       {/* Footer */}
-      <footer className="max-w-6xl mx-auto pt-12 pb-6 border-t border-zinc-800/60 text-center text-xs text-zinc-500">
-        <p>Argus Executive Audit Report — Report ID: {auditResult.id}</p>
-      </footer>
+      <FadeIn>
+        <footer className="max-w-6xl mx-auto pt-12 pb-6 border-t border-white/5 text-center text-xs text-zinc-600">
+          <p>Argus Executive Audit Report — Report ID: {auditResult.id}</p>
+        </footer>
+      </FadeIn>
     </div>
   );
 }

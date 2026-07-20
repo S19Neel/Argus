@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, getStatusConfig } from "@/lib/utils/formatters";
@@ -9,6 +10,42 @@ import {
   ShieldAlert,
   CheckCircle,
 } from "lucide-react";
+import { StaggerContainer, StaggerItem } from "@/components/motion";
+
+/* Animated counter hook — counts up from 0 to target */
+function useCountUp(target: number, duration = 1200) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const start = performance.now();
+          const animate = (now: number) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            // easeOutExpo
+            const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            setValue(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return { value, ref };
+}
 
 interface SavingsKpiCardsProps {
   totalMonthlySavings: number;
@@ -17,7 +54,7 @@ interface SavingsKpiCardsProps {
   totalCurrentMonthlySpend: number;
 }
 
-export function SavingsKpiCards({
+export const SavingsKpiCards = memo(function SavingsKpiCards({
   totalMonthlySavings,
   totalAnnualSavings,
   overallStatus,
@@ -29,102 +66,111 @@ export function SavingsKpiCards({
       ? Math.round((totalMonthlySavings / totalCurrentMonthlySpend) * 100)
       : 0;
 
+  const monthlyCounter = useCountUp(totalMonthlySavings);
+  const annualCounter = useCountUp(totalAnnualSavings);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Monthly Savings Card */}
-      <Card className="bg-zinc-900/70 border-zinc-800 backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-300 shadow-xl">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
-        <CardContent className="p-0 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-semibold tracking-wider text-zinc-400">
-              Identified Monthly Waste
-            </span>
-            <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              <TrendingDown className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl sm:text-4xl font-extrabold font-mono text-emerald-400">
-                {formatCurrency(totalMonthlySavings)}
+      <StaggerItem>
+        <Card className="glass-card glow-hover rounded-2xl p-6 relative overflow-hidden group transition-all duration-400 shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/6 rounded-full blur-[60px] group-hover:bg-emerald-500/12 transition-all duration-500" />
+          <CardContent className="p-0 space-y-4" ref={monthlyCounter.ref}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-semibold tracking-[0.15em] text-zinc-500">
+                Identified Monthly Waste
               </span>
-              <span className="text-xs font-medium text-zinc-400">/mo</span>
+              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <TrendingDown className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-xs text-zinc-400 mt-2 flex items-center gap-1.5">
-              <Badge className="bg-emerald-500/20 text-emerald-300 border-none text-[10px]">
-                {monthlySavingsPct}% Reduction
-              </Badge>
-              from current monthly rate
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            <div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl sm:text-4xl font-bold font-mono text-emerald-400">
+                  {formatCurrency(monthlyCounter.value)}
+                </span>
+                <span className="text-xs font-medium text-zinc-500">/mo</span>
+              </div>
+              <p className="text-xs text-zinc-500 mt-2 flex items-center gap-1.5">
+                <Badge className="bg-emerald-500/15 text-emerald-300 border-none text-[10px]">
+                  {monthlySavingsPct}% Reduction
+                </Badge>
+                from current monthly rate
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </StaggerItem>
 
       {/* Annual Run-rate Savings Card */}
-      <Card className="bg-zinc-900/70 border-zinc-800 backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden group hover:border-teal-500/40 transition-all duration-300 shadow-xl">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl group-hover:bg-teal-500/20 transition-all" />
-        <CardContent className="p-0 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-semibold tracking-wider text-zinc-400">
-              Annualized Bottom-Line Impact
-            </span>
-            <div className="p-2 rounded-xl bg-teal-500/15 text-teal-300 border border-teal-500/30">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl sm:text-4xl font-extrabold font-mono text-teal-300">
-                {formatCurrency(totalAnnualSavings)}
+      <StaggerItem>
+        <Card className="glass-card glow-hover rounded-2xl p-6 relative overflow-hidden group transition-all duration-400 shadow-xl">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/6 rounded-full blur-[60px] group-hover:bg-teal-500/12 transition-all duration-500" />
+          <CardContent className="p-0 space-y-4" ref={annualCounter.ref}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-semibold tracking-[0.15em] text-zinc-500">
+                Annualized Bottom-Line Impact
               </span>
-              <span className="text-xs font-medium text-zinc-400">/yr</span>
+              <div className="p-2 rounded-xl bg-teal-500/10 text-teal-300 border border-teal-500/20">
+                <DollarSign className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-xs text-zinc-400 mt-2">
-              Capital unlocked for core developer headcount & API scaling
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            <div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl sm:text-4xl font-bold font-mono text-teal-300">
+                  {formatCurrency(annualCounter.value)}
+                </span>
+                <span className="text-xs font-medium text-zinc-500">/yr</span>
+              </div>
+              <p className="text-xs text-zinc-500 mt-2">
+                Capital unlocked for core developer headcount & API scaling
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </StaggerItem>
 
       {/* Stack Efficiency Pillar Card */}
-      <Card
-        className={`bg-zinc-900/70 border backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden transition-all duration-300 shadow-xl ${statusConfig.borderClass}`}
-      >
-        <CardContent className="p-0 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-semibold tracking-wider text-zinc-400">
-              Stack Efficiency Index
-            </span>
-            <div className="p-2 rounded-xl bg-zinc-800 text-zinc-300 border border-zinc-700">
-              {overallStatus === "optimal" ? (
-                <CheckCircle className="w-4 h-4 text-amber-400" />
-              ) : (
-                <ShieldAlert className="w-4 h-4 text-emerald-400" />
-              )}
+      <StaggerItem>
+        <Card
+          className={`glass-card glow-hover rounded-2xl p-6 relative overflow-hidden transition-all duration-400 shadow-xl ${statusConfig.borderClass}`}
+        >
+          <CardContent className="p-0 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-semibold tracking-[0.15em] text-zinc-500">
+                Stack Efficiency Index
+              </span>
+              <div className="p-2 rounded-xl bg-zinc-800/60 text-zinc-300 border border-white/8">
+                {overallStatus === "optimal" ? (
+                  <CheckCircle className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <ShieldAlert className="w-4 h-4 text-emerald-400" />
+                )}
+              </div>
             </div>
-          </div>
-          <div className="space-y-3 pt-1">
-            <Badge
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${statusConfig.badgeClass}`}
-            >
-              {statusConfig.label}
-            </Badge>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              {overallStatus === "optimal"
-                ? "Your organization is already operating with high seat tier efficiency and zero critical structural waste."
-                : "Defensible optimization rules triggered across your licensing tiers, billing cycles, or retail allocations."}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="space-y-3 pt-1">
+              <Badge
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${statusConfig.badgeClass}`}
+              >
+                {statusConfig.label}
+              </Badge>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                {overallStatus === "optimal"
+                  ? "Your organization is already operating with high seat tier efficiency and zero critical structural waste."
+                  : "Defensible optimization rules triggered across your licensing tiers, billing cycles, or retail allocations."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </StaggerItem>
 
       {/* Dynamic Situational TechVruk Intervention Banner */}
-      <div className="col-span-1 md:col-span-3">
+      <StaggerItem className="col-span-1 md:col-span-3">
         {totalMonthlySavings >= 500 ? (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/60 via-zinc-900/90 to-teal-950/60 border border-emerald-500/40 text-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
-            <div className="space-y-1">
+          <div className="p-5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-zinc-900/60 to-teal-950/40 border border-emerald-500/25 text-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-sm text-white">
-                <span className="p-1 rounded bg-emerald-500/20 text-emerald-400 text-xs">
+                <span className="p-1 rounded bg-emerald-500/15 text-emerald-400 text-xs">
                   🚀 HIGH SAVINGS ALERT
                 </span>
                 <span>
@@ -132,7 +178,7 @@ export function SavingsKpiCards({
                   {formatCurrency(totalMonthlySavings)}/mo variance)
                 </span>
               </div>
-              <p className="text-xs text-zinc-300 leading-relaxed max-w-3xl">
+              <p className="text-xs text-zinc-400 leading-relaxed max-w-3xl">
                 Because your audit identified significant structural tier
                 overkill or retail API leakage, a senior solutions architect
                 from{" "}
@@ -143,10 +189,10 @@ export function SavingsKpiCards({
             </div>
           </div>
         ) : totalMonthlySavings >= 100 ? (
-          <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
+          <div className="p-5 rounded-xl glass-card text-zinc-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-sm text-white">
-                <span className="p-1 rounded bg-teal-500/20 text-teal-300 text-xs">
+                <span className="p-1 rounded bg-teal-500/15 text-teal-300 text-xs">
                   💡 MODERATE OPTIMIZATION
                 </span>
                 <span>
@@ -154,7 +200,7 @@ export function SavingsKpiCards({
                   {formatCurrency(totalMonthlySavings)}/mo)
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed max-w-3xl">
+              <p className="text-xs text-zinc-500 leading-relaxed max-w-3xl">
                 Easily recover{" "}
                 <strong className="text-teal-300">
                   {formatCurrency(totalAnnualSavings)}
@@ -165,10 +211,10 @@ export function SavingsKpiCards({
             </div>
           </div>
         ) : (
-          <div className="p-4 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
+          <div className="p-5 rounded-xl glass-card text-zinc-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2 font-bold text-sm text-white">
-                <span className="p-1 rounded bg-amber-500/20 text-amber-300 text-xs">
+                <span className="p-1 rounded bg-amber-500/15 text-amber-300 text-xs">
                   ✅ OPTIMAL STACK
                 </span>
                 <span>
@@ -176,7 +222,7 @@ export function SavingsKpiCards({
                   {formatCurrency(totalMonthlySavings)}/mo variance)
                 </span>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed max-w-3xl">
+              <p className="text-xs text-zinc-500 leading-relaxed max-w-3xl">
                 Your engineering organization is maintaining defensible,
                 high-efficiency AI tool licensing without overpaying on retail
                 tier multipliers or redundant seat allocations.
@@ -184,7 +230,7 @@ export function SavingsKpiCards({
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </StaggerItem>
+    </StaggerContainer>
   );
-}
+});
