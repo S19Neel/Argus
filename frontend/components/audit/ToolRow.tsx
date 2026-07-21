@@ -41,7 +41,7 @@ export const ToolRow = memo(function ToolRow({
             val && onToolChange(index, "toolName", val)
           }
         >
-          <SelectTrigger className="w-full bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-11">
+          <SelectTrigger className="w-full bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-11 cursor-pointer">
             <SelectValue placeholder="Select Tool">
               {tool.toolName || "Select Tool"}
             </SelectValue>
@@ -66,7 +66,7 @@ export const ToolRow = memo(function ToolRow({
             val && onToolChange(index, "plan", val)
           }
         >
-          <SelectTrigger className="w-full bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-11">
+          <SelectTrigger className="w-full bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-11 cursor-pointer">
             <SelectValue placeholder="Select Tier">
               {tool.plan || "Select Tier"}
             </SelectValue>
@@ -93,7 +93,7 @@ export const ToolRow = memo(function ToolRow({
           onChange={(e) =>
             onToolChange(index, "seats", parseInt(e.target.value, 10) || 1)
           }
-          className="bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-11 font-mono"
+          className="bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-11 font-mono cursor-pointer"
         />
       </div>
 
@@ -101,7 +101,7 @@ export const ToolRow = memo(function ToolRow({
         <label className="block md:hidden text-xs font-mono text-zinc-500 mb-1.5 uppercase tracking-wider">
           Monthly Spend
         </label>
-        <div className="h-11 flex items-center px-3 rounded-md bg-white/[0.02] border border-white/5 text-zinc-300 font-mono text-sm">
+        <div className="h-11 flex items-center px-3 rounded-md bg-white/[0.02] border border-white/5 text-zinc-300 font-mono text-sm cursor-pointer">
           {formatCurrency(tool.currentMonthlySpend)}
         </div>
       </div>
@@ -112,7 +112,7 @@ export const ToolRow = memo(function ToolRow({
           variant="ghost"
           size="icon"
           onClick={() => onRemove(index)}
-          className="text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 h-9 w-9"
+          className="text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 h-9 w-9 cursor-pointer"
           title="Remove Tool"
         >
           <Trash2 className="w-4 h-4" />

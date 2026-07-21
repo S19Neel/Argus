@@ -36,7 +36,7 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl bg-[#0e121c]/80 border border-white/10 shadow-xl backdrop-blur-md">
         <div className="space-y-3">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center min-h-[36px]">
             <label className="text-sm font-mono uppercase tracking-wider text-zinc-400">
               Team Size (Seats)
             </label>
@@ -50,7 +50,7 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
             min={1}
             max={500}
             step={1}
-            className="py-4"
+            className="py-4 cursor-pointer"
           />
           <div className="flex justify-between text-xs font-mono text-zinc-600">
             <span>1</span>
@@ -61,11 +61,13 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
         </div>
 
         <div className="space-y-3">
-          <label className="text-sm font-mono uppercase tracking-wider text-zinc-400 block">
-            Primary AI Use Case
-          </label>
+          <div className="flex items-center min-h-[36px]">
+            <label className="text-sm font-mono uppercase tracking-wider text-zinc-400">
+              Primary AI Use Case
+            </label>
+          </div>
           <Select value={primaryUseCase} onValueChange={handleUseCaseChange}>
-            <SelectTrigger className="w-full bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-12 text-base">
+            <SelectTrigger className="w-full bg-[#161d2d] border-white/10 text-white focus:ring-emerald-500 focus:border-emerald-500 h-12 text-base cursor-pointer">
               <SelectValue placeholder="Select primary objective">
                 {USE_CASES.find((uc) => uc.id === primaryUseCase)?.label ||
                   primaryUseCase ||
@@ -80,9 +82,6 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-zinc-500 italic">
-            This calibrates our overkill algorithms against industry norms.
-          </p>
         </div>
       </div>
 
@@ -98,7 +97,7 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
             type="button"
             onClick={handleAddTool}
             variant="outline"
-            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500 gap-2 h-10 px-4"
+            className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500 gap-2 h-10 px-4 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add AI Tool</span>
@@ -118,7 +117,7 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
             <Button
               type="button"
               onClick={handleAddTool}
-              className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold gap-2"
+              className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold gap-2 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Add Your First Tool</span>
@@ -181,7 +180,7 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
             type="button"
             variant="ghost"
             onClick={handleReset}
-            className="text-zinc-400 hover:text-white hover:bg-white/5 h-12 px-4 gap-2 flex-1 md:flex-initial"
+            className="text-zinc-400 hover:text-white hover:bg-white/5 h-12 px-4 gap-2 flex-1 md:flex-initial cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Reset</span>
@@ -190,7 +189,7 @@ export const StackBuilderForm = memo(function StackBuilderForm() {
           <Button
             type="submit"
             disabled={loading || tools.length === 0}
-            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-heading font-bold text-base h-12 px-8 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all gap-2 flex-2 md:flex-initial"
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-heading font-bold text-base h-12 px-8 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.3)] hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] transition-all gap-2 flex-2 md:flex-initial cursor-pointer"
           >
             {loading ? (
               <div className="flex items-center gap-2">

@@ -63,13 +63,13 @@ export function HomeClientContent() {
                   : "opacity-0"
               }
             />
-            <span
+            {/* <span
               className={`text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-medium transition-opacity duration-500 ${
                 splashDone ? "opacity-100" : "opacity-0"
               }`}
             >
               Architecture Auditor
-            </span>
+            </span> */}
           </div>
 
           <div className="text-center space-y-7 max-w-3xl mx-auto pt-2">
