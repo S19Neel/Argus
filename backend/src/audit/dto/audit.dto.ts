@@ -26,7 +26,14 @@ export type ToolName =
   | 'v0';
 
 export type PrimaryUseCase =
-  'coding' | 'writing' | 'data' | 'research' | 'mixed';
+  | 'coding'
+  | 'writing'
+  | 'design'
+  | 'data'
+  | 'data_analysis'
+  | 'research'
+  | 'customer_support'
+  | 'mixed';
 
 export type RecommendedAction =
   'keep' | 'switch_plan' | 'switch_tool' | 'switch_to_credits' | 'downgrade';
@@ -58,7 +65,16 @@ export class AuditInputDto {
   teamSize: number;
 
   @IsString()
-  @IsIn(['coding', 'writing', 'data', 'research', 'mixed'])
+  @IsIn([
+    'coding',
+    'writing',
+    'design',
+    'data',
+    'data_analysis',
+    'research',
+    'customer_support',
+    'mixed',
+  ])
   primaryUseCase: PrimaryUseCase;
 
   @IsArray()

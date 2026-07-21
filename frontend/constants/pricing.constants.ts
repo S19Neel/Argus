@@ -204,6 +204,8 @@ export const USE_CASES = [
   { id: "coding", label: "Software Engineering & Code Generation" },
   { id: "writing", label: "Content Writing & Copywriting" },
   { id: "design", label: "UI/UX & Product Design" },
-  { id: "data_analysis", label: "Data Analysis & Pipelines" },
+  { id: "data", label: "Data Analysis & Pipelines" },
+  { id: "research", label: "Research & Deep Tech Analysis" },
   { id: "customer_support", label: "Customer Support Automation" },
+  { id: "mixed", label: "Mixed / Full-Stack AI Workflows" },
 ];

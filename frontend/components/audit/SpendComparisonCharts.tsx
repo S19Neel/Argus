@@ -1,158 +1,197 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ToolAuditBreakdownDto } from "@/types/audit.types";
-import { formatCurrency } from "@/lib/utils/formatters";
+import { memo, useMemo } from "react";
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
-import { BarChart3, PieChart as PieIcon } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CHART_COLORS } from "@/constants/audit.constants";
+import { formatCurrency } from "@/lib/utils/formatters";
+import type { SpendComparisonChartsProps } from "@/types/components.types";
 
-interface SpendComparisonChartsProps {
-  toolBreakdowns: ToolAuditBreakdownDto[];
+interface TooltipPayloadItem {
+  name: string;
+  value: number;
+  color?: string;
 }
 
-const COLORS = [
-  "#10b981",
-  "#14b8a6",
-  "#6366f1",
-  "#8b5cf6",
-  "#f59e0b",
-  "#ec4899",
-];
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
 
-export function SpendComparisonCharts({
+function CustomBarTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (active && payload && payload.length > 0) {
+    return (
+      <div className="bg-[#0e121c] border border-white/10 p-3 rounded-lg shadow-xl font-mono text-xs">
+        <p className="text-white font-bold mb-1">{label}</p>
+        {payload.map((entry, idx) => (
+          <p key={idx} style={{ color: entry.color }} className="my-0.5">
+            {entry.name}: {formatCurrency(entry.value)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomPieTooltip({ active, payload }: CustomTooltipProps) {
+  if (active && payload && payload[0]) {
+    const data = payload[0];
+    return (
+      <div className="bg-[#0e121c] border border-white/10 p-3 rounded-lg shadow-xl font-mono text-xs">
+        <p className="text-white font-bold">{data.name}</p>
+        <p className="text-emerald-400 mt-1">
+          Savings: {formatCurrency(data.value)}/mo
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
+export const SpendComparisonCharts = memo(function SpendComparisonCharts({
   toolBreakdowns,
 }: SpendComparisonChartsProps) {
-  const barData = toolBreakdowns.map((item) => ({
-    name: item.toolName,
-    Current: item.currentSpend,
-    Optimized: item.estimatedMonthlyCost,
-  }));
+  const barData = useMemo(
+    () =>
+      toolBreakdowns.map((t) => ({
+        toolName:
+          t.toolName.length > 12 ? t.toolName.slice(0, 12) + "..." : t.toolName,
+        Current: Number(t.currentSpend) || 0,
+        Recommended: Number(t.estimatedMonthlyCost) || 0,
+      })),
+    [toolBreakdowns],
+  );
 
-  const pieData = toolBreakdowns.map((item) => ({
-    name: `${item.toolName} (${item.currentPlan})`,
-    value: item.currentSpend,
-  }));
+  const pieData = useMemo(
+    () =>
+      toolBreakdowns
+        .filter((t) => (Number(t.monthlySavings) || 0) > 0)
+        .map((t) => ({
+          name: t.toolName,
+          value: Number(t.monthlySavings) || 0,
+        })),
+    [toolBreakdowns],
+  );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Before vs After Spend Bar Chart */}
-      <Card className="bg-zinc-900/70 border-zinc-800 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-        <CardHeader className="p-0 pb-6 border-b border-zinc-800/80 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-bold text-white flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-emerald-400" />
-              Current vs Optimized Monthly Spend
-            </CardTitle>
-            <p className="text-xs text-zinc-400 mt-1">
-              Side-by-side spend comparison before and after structural
-              optimization ($ USD)
-            </p>
-          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <Card className="lg:col-span-7 bg-[#0e121c]/80 border-white/10 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-base font-heading text-white">
+            Current vs. Optimized Monthly Spend
+          </CardTitle>
         </CardHeader>
-        <CardContent className="p-0 pt-6 h-72">
+        <CardContent className="h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={barData}
-              margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(255,255,255,0.05)"
+                vertical={false}
+              />
               <XAxis
-                dataKey="name"
+                dataKey="toolName"
                 stroke="#71717a"
                 fontSize={12}
                 tickLine={false}
+                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
               />
-              <YAxis stroke="#71717a" fontSize={12} tickLine={false} />
+              <YAxis
+                stroke="#71717a"
+                fontSize={12}
+                tickLine={false}
+                axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+                tickFormatter={(val: number) => `$${val}`}
+              />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "#090d16",
-                  borderColor: "#27272a",
-                  borderRadius: "12px",
-                  color: "#fff",
-                }}
-                formatter={(val: any) => [formatCurrency(Number(val) || 0), ""]}
+                content={<CustomBarTooltip />}
+                cursor={{ fill: "rgba(255,255,255,0.03)" }}
               />
-              <Legend wrapperStyle={{ paddingTop: "10px", fontSize: "12px" }} />
+              <Legend
+                wrapperStyle={{
+                  paddingTop: "10px",
+                  fontSize: "12px",
+                  fontFamily: "var(--font-mono)",
+                }}
+              />
               <Bar
                 dataKey="Current"
                 fill="#3f3f46"
-                name="Current Spend ($/mo)"
-                radius={[6, 6, 0, 0]}
+                radius={[4, 4, 0, 0]}
+                name="Current Spend"
               />
               <Bar
-                dataKey="Optimized"
+                dataKey="Recommended"
                 fill="#10b981"
-                name="Optimized Spend ($/mo)"
-                radius={[6, 6, 0, 0]}
+                radius={[4, 4, 0, 0]}
+                name="Optimized Spend"
               />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Stack Allocation Pie Chart */}
-      <Card className="bg-zinc-900/70 border-zinc-800 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-        <CardHeader className="p-0 pb-6 border-b border-zinc-800/80 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-bold text-white flex items-center gap-2">
-              <PieIcon className="w-5 h-5 text-teal-400" />
-              Current Stack Spend Allocation
-            </CardTitle>
-            <p className="text-xs text-zinc-400 mt-1">
-              Proportional distribution of current monthly licensing spend
-              across tools
-            </p>
-          </div>
+      <Card className="lg:col-span-5 bg-[#0e121c]/80 border-white/10 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-base font-heading text-white">
+            Savings Distribution by Tool
+          </CardTitle>
         </CardHeader>
-        <CardContent className="p-0 pt-6 h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={4}
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                    stroke="#090d16"
-                    strokeWidth={2}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#090d16",
-                  borderColor: "#27272a",
-                  borderRadius: "12px",
-                  color: "#fff",
-                }}
-                formatter={(val: any) => [
-                  formatCurrency(Number(val) || 0),
-                  "Monthly Spend",
-                ]}
-              />
-              <Legend wrapperStyle={{ fontSize: "11px", color: "#a1a1aa" }} />
-            </PieChart>
-          </ResponsiveContainer>
+        <CardContent className="h-[320px] flex items-center justify-center">
+          {pieData.length === 0 ? (
+            <div className="text-center font-mono text-zinc-500 text-sm">
+              No immediate cost reduction targets identified.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={4}
+                  dataKey="value"
+                >
+                  {pieData.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                      stroke="rgba(14,18,28,0.8)"
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomPieTooltip />} />
+                <Legend
+                  wrapperStyle={{
+                    fontSize: "11px",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
     </div>
   );
-}
+});
