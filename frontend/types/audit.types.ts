@@ -93,3 +93,8 @@ export interface CaptureLeadDto {
   teamSize?: number;
   _honeypot?: string;
 }
+
+export interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}

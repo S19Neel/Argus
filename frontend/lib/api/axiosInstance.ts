@@ -1,8 +1,10 @@
 import axios, {
-  AxiosInstance,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
+  type AxiosInstance,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+  type AxiosError,
 } from "axios";
+import type { ApiErrorResponse } from "@/types/audit.types";
 
 const baseURL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api/v1";
@@ -19,7 +21,7 @@ axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     return config;
   },
-  (error: any) => {
+  (error: unknown) => {
     return Promise.reject(error);
   },
 );
@@ -28,10 +30,12 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
-  (error: any) => {
+  (error: unknown) => {
+    const axiosError = error as AxiosError<ApiErrorResponse>;
     const customError =
-      error.response?.data?.message ||
-      error.message ||
+      axiosError.response?.data?.message ||
+      axiosError.response?.data?.error ||
+      axiosError.message ||
       "An unexpected network error occurred";
     return Promise.reject(new Error(customError));
   },

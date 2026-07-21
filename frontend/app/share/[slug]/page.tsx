@@ -3,12 +3,10 @@ import { ExecutiveSummaryCard } from "@/components/audit/ExecutiveSummaryCard";
 import { SavingsKpiCards } from "@/components/audit/SavingsKpiCards";
 import { SpendComparisonCharts } from "@/components/audit/SpendComparisonCharts";
 import { ToolRecommendationsTable } from "@/components/audit/ToolRecommendationsTable";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Link from "next/link";
-
 import type { Metadata } from "next";
 
-// Server Component for native SEO and shareable metadata
 export async function generateMetadata({
   params,
 }: {
@@ -58,8 +56,9 @@ export default async function SharedSlugPage({
 
   try {
     auditReport = await auditApi.getAuditBySlug(resolvedParams.slug);
-  } catch (err: any) {
-    error = err.message || "Could not retrieve shared report.";
+  } catch (err: unknown) {
+    const errorObj = err as Error | { message?: string };
+    error = errorObj.message || "Could not retrieve shared report.";
   }
 
   if (error || !auditReport) {
@@ -86,7 +85,6 @@ export default async function SharedSlugPage({
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-900 via-[#060a12] to-black py-12 px-4 sm:px-6 lg:px-8 space-y-10">
-      {/* Top Banner */}
       <div className="max-w-6xl mx-auto p-4 rounded-2xl bg-gradient-to-r from-emerald-500/8 via-teal-500/8 to-violet-500/8 border border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in-up">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
@@ -110,7 +108,6 @@ export default async function SharedSlugPage({
         </Link>
       </div>
 
-      {/* Header */}
       <div className="max-w-6xl mx-auto flex items-center justify-between border-b border-white/6 pb-6 animate-fade-in-up animate-delay-100">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
@@ -129,10 +126,11 @@ export default async function SharedSlugPage({
         </div>
       </div>
 
-      {/* Sections */}
       <div className="max-w-6xl mx-auto space-y-10">
         <div className="animate-fade-in-up animate-delay-200">
-          <ExecutiveSummaryCard summaryParagraph={auditReport.summaryParagraph} />
+          <ExecutiveSummaryCard
+            summaryParagraph={auditReport.summaryParagraph}
+          />
         </div>
 
         <div className="animate-fade-in-up animate-delay-300">
@@ -153,7 +151,6 @@ export default async function SharedSlugPage({
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="max-w-6xl mx-auto pt-12 pb-8 border-t border-white/5 text-center text-xs text-zinc-600 space-y-1 animate-fade-in-up animate-delay-500">
         <p>
           Argus AI Architectural Audit Engine &bull; Defensible Spend
